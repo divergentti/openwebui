@@ -1,15 +1,22 @@
 """
+Draft Function for OpenWebUi
+
 title: Mistral Manifold Pipe
 author: Jari Hiltunen / Divergentti https://github.com/divergentti
 modified from Anthropic function done by author_url: https://github.com/justinh-rahb
-version: 0.0.1
+version: 0.0.3 (19.01.2025) - not continuing to develop further
 required_open_webui_version: 0.3.17
 license: MIT
 
-Function lists all models at Mistral.ai and adds them to Models-selection.
+Function lists all models at Mistral.ai and adds them to Models-selection and then tries to filter those
+which are multiple times with different versions. This seems to be too complex approach. Define your own models
+to the list as you like.
+
 If you are using free API, you can use mistral-nemo, mistral-Pixtral and Codestral Mamba.
 Before using, create your free API-keys at https://console.mistral.ai/
 After installing this Function, add your API-key to the Valves of the Function (gear rightmost)
+
+Note! Image creation is not tested
 """
 
 import os
@@ -26,81 +33,137 @@ class Pipe:
 
 
     def __init__(self):
+        self.debug = True
         self.type = "manifold"
         self.id = "mistral"
         self.name = "mistral/"
         # European server
         self.server= "https://api.mistral.ai"
+        self.models_url = self.server + "/v1/models"
         self.chat_url = self.server + "/v1/chat/completions"
-        self.models_path = self.server + "/v1/models"
-
-        self.temperature = 0.35
+        self.temperature = 0.7
         self.top_p = 0.9
         self.max_tokens = 4096
-        self.debug = True
-        self.MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB per image
-
-        # Read the environment variable and strip any whitespace
         api_key = os.getenv("MISTRAL_API_KEY", "").strip()
         self.valves = self.Valves(MISTRAL_API_KEY=api_key)
         if self.debug:
-            print("API-key used:", self.valves.MISTRAL_API_KEY)  # Add this line for verification
+            print("API-key used:", api_key)
         self.last_request_time = 0  # Initialize the last request time for rate limiting
-        self.rate_limit_interval = 1  # Set the rate limit interval in seconds
+        self.rate_limit_interval = 1  # Set the rate limit interval in seconds (Open is 100 request per hour)
+        self.models = ""
+
+        # Note yet implemented!
+        self.MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB per image
+        self.image_url = ""
 
     def get_mistral_models(self):
         headers = {
             "Authorization": f"Bearer {self.valves.MISTRAL_API_KEY}",
             "Content-Type": "application/json",
         }
-        response = requests.get(f"{self.server}/v1/models", headers=headers)
+        response = requests.get(f"{self.models_url}", headers=headers)
         response.raise_for_status()
         models = response.json()["data"]
-        if self.debug:
-            print("Models:", models )
-        return [{"id": model["id"], "name": model["name"]} for model in models]
 
+        # Map to track unique models
+        model_map = {}
+        for model in models:
+            # Check if the model has the `completion_chat` capability
+            if not model["capabilities"].get("completion_chat", False):
+                continue
+
+            # Extract base ID and check if it's a "latest" version
+            base_id = "-".join(model["id"].split("-")[:-1])
+            is_latest = "latest" in model["id"] or "latest" in model["aliases"]
+
+            # Update or add model to the map
+            if base_id not in model_map or is_latest:
+                model_map[base_id] = model
+
+        # Prepare the final list of unique models
+        unique_models = []
+        for base_id, model in model_map.items():
+            unique_models.append({
+                "id": model["id"],
+                "name": model["name"],
+                "capabilities": model["capabilities"],
+                "description": model["description"],
+                "max_context_length": model["max_context_length"],
+                "aliases": model["aliases"],
+                "deprecation": model["deprecation"],
+                "default_model_temperature": model["default_model_temperature"],
+                "type": model["type"],
+            })
+
+        if self.debug:
+            print("Unique Models:")
+            for model in unique_models:
+                print(f"ID: {model['id']}")
+                print(f"Name: {model['name']}")
+                print(f"Capabilities: {model['capabilities']}")
+                print(f"Description: {model['description']}")
+                print(f"Max Context Length: {model['max_context_length']}")
+                print(f"Aliases: {model['aliases']}")
+                print(f"Deprecation: {model['deprecation']}")
+                print(f"Default Model Temperature: {model['default_model_temperature']}")
+                print(f"Type: {model['type']}")
+                print("-" * 40)
+
+        return unique_models
 
     def pipes(self) -> List[dict]:
+        # This initiates the sub, but for some reason object (self) values are not passed further
         models = self.get_mistral_models()
-        return [{"id": model["id"], "name": f"mistral/{model['name']}"} for model in models]
+        return [{"id": model["id"], "name": f"{model['name']}"} for model in models]
 
     def process_image(self, image_data):
-        """Process image data with size validation."""
-        if image_data["image_url"]["url"].startswith("data:image"):
-            mime_type, base64_data = image_data["image_url"]["url"].split(",", 1)
-            media_type = mime_type.split(":")[1].split(";")[0]
-
-            # Check base64 image size
-            image_size = len(base64_data) * 3 / 4  # Convert base64 size to bytes
-            if image_size > self.MAX_IMAGE_SIZE:
-                raise ValueError(
-                    f"Image size exceeds 5MB limit: {image_size / (1024 * 1024):.2f}MB"
-                )
-
-            return {
-                "type": "image",
-                "source": {
-                    "type": "base64",
-                    "media_type": media_type,
-                    "data": base64_data,
-                },
-            }
-        else:
-            # For URL images, perform size check after fetching
-            url = image_data["image_url"]["url"]
+        if image_data["type"] == "image_url":
+            url = image_data["url"]
             response = requests.head(url, allow_redirects=True)
             content_length = int(response.headers.get("content-length", 0))
-
             if content_length > self.MAX_IMAGE_SIZE:
-                raise ValueError(
-                    f"Image at URL exceeds 5MB limit: {content_length / (1024 * 1024):.2f}MB"
-                )
-
+                raise ValueError(f"Image at URL exceeds {self.MAX_IMAGE_SIZE / (1024 * 1024):.2f}MB limit")
             return {
-                "type": "image",
-                "source": {"type": "url", "url": url},
+                "type": "image_url",
+                "url": url,
             }
+        elif image_data["type"] == "image_base64":
+            mime_type, base64_data = image_data["data"].split(",", 1)
+            media_type = mime_type.split(":")[1].split(";")[0]
+            image_size = len(base64_data) * 3 / 4  # Convert base64 size to bytes
+            if image_size > self.MAX_IMAGE_SIZE:
+                raise ValueError(f"Image size exceeds {self.MAX_IMAGE_SIZE / (1024 * 1024):.2f}MB limit")
+            return {
+                "type": "image_base64",
+                "media_type": media_type,
+                "data": base64_data,
+            }
+        elif image_data["type"] == "image_generate":
+            prompt = image_data["prompt"]
+            headers = {
+                "Authorization": f"Bearer {self.valves.MISTRAL_API_KEY}",
+                "Content-Type": "application/json",
+            }
+            payload = {
+                "prompt": prompt,
+                "n_iter": 1,
+                "size": "256x256",
+            }
+            try:
+                response = requests.post(self.image_url, headers=headers, json=payload, timeout=(3.05, 60))
+                response.raise_for_status()
+                image_data = response.json()["data"][0]
+                image_url = image_data["url"]
+                return {
+                    "type": "image_generate",
+                    "url": image_url,
+                }
+            except requests.exceptions.RequestException as e:
+                print(f"Image generation failed: {e}")
+                raise ValueError("Image generation failed")
+
+        else:
+            raise ValueError("Unsupported image type")
 
 
     def pipe(self, body: dict) -> Union[str, Generator, Iterator]:
@@ -235,4 +298,3 @@ class Pipe:
         except requests.exceptions.RequestException as e:
             print(f"Failed non-stream request: {e}")
             return f"Error: {e}"
-
