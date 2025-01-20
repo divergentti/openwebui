@@ -4,7 +4,7 @@ Draft Function for OpenWebUi
 title: Mistral Manifold Pipe
 author: Jari Hiltunen / Divergentti https://github.com/divergentti
 modified from Anthropic function done by author_url: https://github.com/justinh-rahb
-version: 0.0.3 (19.01.2025) - not continuing to develop further
+version: 0.0.4 (20.01.2025) - not continuing to develop further
 required_open_webui_version: 0.3.17
 license: MIT
 
@@ -13,6 +13,10 @@ which are multiple times with different versions. This seems to be too complex a
 to the list as you like.
 
 If you are using free API, you can use mistral-nemo, mistral-Pixtral and Codestral Mamba.
+The free tier at Mistral AI allows for 100 requests per hour, which translates to approximately 1.67 requests
+per minute or around 0.027 requests per second. To stay within the rate limit, you should adjust your rate
+limit interval accordingly.
+
 Before using, create your free API-keys at https://console.mistral.ai/
 After installing this Function, add your API-key to the Valves of the Function (gear rightmost)
 
@@ -33,7 +37,9 @@ class Pipe:
 
 
     def __init__(self):
-        self.debug = True
+        self.debug_models = False
+        self.debug_stream = True
+        self.debug_errors = True
         self.type = "manifold"
         self.id = "mistral"
         self.name = "mistral/"
@@ -46,28 +52,33 @@ class Pipe:
         self.max_tokens = 4096
         api_key = os.getenv("MISTRAL_API_KEY", "").strip()
         self.valves = self.Valves(MISTRAL_API_KEY=api_key)
-        if self.debug:
-            print("API-key used:", api_key)
-        self.last_request_time = 0  # Initialize the last request time for rate limiting
-        self.rate_limit_interval = 1  # Set the rate limit interval in seconds (Open is 100 request per hour)
+        self.last_request_time: float = 0.0  # Initialize the last request time for rate limiting
+        self.rate_limit_reset: float = 0.0  # Initialize rate_limit_reset to 0
+        self.rate_limit_interval: float = 30.0  # Set the rate limit interval in seconds (Open is 100 request per hour)
         self.models = ""
 
-        # Note yet implemented!
+        # Not yet implemented!
         self.MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB per image
         self.image_url = ""
 
     def get_mistral_models(self):
+        if not self.valves.MISTRAL_API_KEY:
+            raise ValueError("MISTRAL_API_KEY is missing or invalid.")
         headers = {
             "Authorization": f"Bearer {self.valves.MISTRAL_API_KEY}",
             "Content-Type": "application/json",
         }
-        response = requests.get(f"{self.models_url}", headers=headers)
-        response.raise_for_status()
-        models = response.json()["data"]
+        try:
+            response = requests.get(f"{self.models_url}", headers=headers)
+            response.raise_for_status()
+            self.models = response.json()["data"]
+        except requests.exceptions.RequestException as e:
+            if self.debug_errors:
+                print(f"API call failed: {e}")
 
         # Map to track unique models
         model_map = {}
-        for model in models:
+        for model in self.models:
             # Check if the model has the `completion_chat` capability
             if not model["capabilities"].get("completion_chat", False):
                 continue
@@ -95,7 +106,7 @@ class Pipe:
                 "type": model["type"],
             })
 
-        if self.debug:
+        if self.debug_models:
             print("Unique Models:")
             for model in unique_models:
                 print(f"ID: {model['id']}")
@@ -113,8 +124,12 @@ class Pipe:
 
     def pipes(self) -> List[dict]:
         # This initiates the sub, but for some reason object (self) values are not passed further
-        models = self.get_mistral_models()
-        return [{"id": model["id"], "name": f"{model['name']}"} for model in models]
+        try:
+            models = self.get_mistral_models()
+            return [{"id": model["id"], "name": model["name"]} for model in models]
+        except Exception as e:
+            if self.debug_errors:
+                print(f"Error fetching models: {e}")
 
     def process_image(self, image_data):
         if image_data["type"] == "image_url":
@@ -152,6 +167,16 @@ class Pipe:
             try:
                 response = requests.post(self.image_url, headers=headers, json=payload, timeout=(3.05, 60))
                 response.raise_for_status()
+                # Check rate limit headers
+                rate_limit_remaining = int(response.headers.get("X-RateLimit-Remaining", 0))
+                rate_limit_reset = int(response.headers.get("X-RateLimit-Reset", 0))
+                self.rate_limit_reset = rate_limit_reset
+                if rate_limit_remaining == 0:
+                    sleep_time: float = max(0.0, float(self.rate_limit_reset) - time.time())
+                    if self.debug_stream:
+                        print(f"Rate limit exceeded. Sleeping for {sleep_time:.2f} seconds.")
+                    time.sleep(sleep_time)  # Note! This is not async method!
+
                 image_data = response.json()["data"][0]
                 image_url = image_data["url"]
                 return {
@@ -159,8 +184,12 @@ class Pipe:
                     "url": image_url,
                 }
             except requests.exceptions.RequestException as e:
-                print(f"Image generation failed: {e}")
+                if self.debug_stream:
+                    print(f"Image generation failed: {e}")
                 raise ValueError("Image generation failed")
+            except requests.exceptions.RequestException as e:
+                if self.debug_stream:
+                    print(f"Rate limit header error: {e}")
 
         else:
             raise ValueError("Unsupported image type")
@@ -217,14 +246,17 @@ class Pipe:
             "Content-Type": "application/json",
         }
 
-        if self.debug:
-            print("Headers being sent   :", headers)  # Add this line for verification
+        if self.debug_stream:
+            print("Headers being sent   :", headers)
 
         # Rate limiting
         current_time = time.time()
-        elapsed_time = current_time - self.last_request_time
+        elapsed_time: float = current_time - self.last_request_time
         if elapsed_time < self.rate_limit_interval:
-            time.sleep(self.rate_limit_interval - elapsed_time)
+            sleep_time: float = max(0.0, float(self.rate_limit_reset) - time.time())
+            if self.debug_stream:
+                print(f"Rate limit exceeded. Sleeping for {sleep_time:.2f} seconds.")
+            time.sleep(sleep_time)
         self.last_request_time = time.time()
 
         try:
@@ -233,10 +265,12 @@ class Pipe:
             else:
                 return self.non_stream_response(self.chat_url, headers, payload)
         except requests.exceptions.RequestException as e:
-            print(f"Request failed: {e}")
+            if self.debug_stream:
+                print(f"Request failed: {e}")
             return f"Error: Request failed: {e}"
         except Exception as e:
-            print(f"Error in pipe method: {e}")
+            if self.debug_stream:
+                print(f"Error in pipe method: {e}")
             return f"Error: {e}"
 
     def stream_response(self, url, headers, payload):
@@ -250,11 +284,15 @@ class Pipe:
                         f"HTTP Error {response.status_code}: {response.text}"
                     )
 
+
                 for line in response.iter_lines():
+                    if self.debug_stream:
+                        print("Response line: ", line)
                     if line:
                         line = line.decode("utf-8")
                         if line == "data: [DONE]":
-                            print("Streaming completed successfully.")
+                            if self.debug_stream:
+                                print("Streaming completed successfully.")
                             break
                         if line.startswith("data: "):
                             try:
@@ -271,15 +309,19 @@ class Pipe:
                                 )  # Delay to avoid overwhelming the client
 
                             except json.JSONDecodeError:
-                                print(f"Failed to parse JSON: {line}")
+                                if self.debug_stream:
+                                    print(f"Failed to parse JSON: {line}")
                             except KeyError as e:
-                                print(f"Unexpected data structure: {e}")
-                                print(f"Full data: {data}")
+                                if self.debug_stream:
+                                    print(f"Unexpected data structure: {e}")
+                                    print(f"Full data: {data}")
         except requests.exceptions.RequestException as e:
-            print(f"Request failed: {e}")
+            if self.debug_stream:
+                print(f"Request failed: {e}")
             yield f"Error: Request failed: {e}"
         except Exception as e:
-            print(f"General error in stream_response method: {e}")
+            if self.debug_stream:
+                print(f"General error in stream_response method: {e}")
             yield f"Error: {e}"
 
     def non_stream_response(self, url, headers, payload):
@@ -296,5 +338,6 @@ class Pipe:
                 res["choices"][0]["message"]["content"] if "choices" in res and res["choices"] else ""
             )
         except requests.exceptions.RequestException as e:
-            print(f"Failed non-stream request: {e}")
+            if self.debug_stream:
+                print(f"Failed non-stream request: {e}")
             return f"Error: {e}"
