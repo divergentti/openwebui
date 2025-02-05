@@ -1,0 +1,63 @@
+Tässä oppaassa käsitellään muutamia Ollaman ja OpenWebUIn asetuksia, jotka auttavat optimoimaan ohjelmistojen toimintaa eri käyttötarkoituksissa.
+
+Ollama on tehokas työkalu LLM-mallien käyttämiseksi. Malleja alkaa olla hyvin saatavilla ja tällä hetkellä mielenkiintoisin on Metan LLama3.2. Kaikki Ollamaan ladattavat mallit löydät tästä.
+
+OpenWebUI puolestaan mahdollistaa web-käyttöliittymän kautta tapahtuvan vuorovaikutuksen mm. Ollaman ja muiden taustaprosessien kanssa, mikä tekee siitä erinomaisen työkalun vaikkapa henkilökohtaiseksi avustajaksi. Koska mallit ladataan omalle koneelle, ei tietoa vaihdeta, ellet erikseen asetuksissa niin määrittele, ulkoisille palvelimille. OpenWebUI:n ominaisuuksia ja lisäosia löydät täältä.
+Hakukoneen valinta
+
+Voit valita OpenWebUI:ssa hakukoneeksi maksullisia hakukoneita, tai ilmaisen DuckDuckGO:n. Maksullisista on saatavilla myös ilmaisia versioita, joissa ilmaisien hakujen määrää on rajoitettu 100–2500 kuukaudessa. Niitä varten sinun pitää generoida API-avain. DuckDuckGO on moneen käyttöön riittävä, mutta jos tarvitset paljon tarkkoja hakuja, harkitse Google PSE:tä.
+
+Hakukonevaihtoehdot löydät Hallintapaneelista
+Hallintapaneelin hakukonevalinta
+
+Voit asettaa hakukoneen pysyvästi päälle promptin + - merkistä.
+
+Mikäli haluat tuoda URL-osoitteen dokumenttina keskusteluun mukaan, käytä #-merkin jälkeen url-osoittetta kokonaisuudessaan. Esimerkiksi voit ladata web-sivun #https://yle.fi ja pyytää tietoja sivustolta.
+Dokumenttien ja hakujen parantaminen
+
+OpenWebUI käyttää oletuksena SentenceTransformers-kirjastoa. Se kannattaa muuttaa käyttämään esimerkiksi Ollaman paraphrase-multilingual- kirjastoa.
+
+Suomenkielisistä paras lienee Poro joka asennetaan komennolla ollama pull osoderholm/poro mutta vaikka se toimisi esim. kotikoneen 12+ GB CUDA:lla, on malli aika hidas ja ei välttämättä hyödytä asettaa sitä oletukseksi.
+
+    Poro is a 34B parameter decoder-only transformer pretrained on Finnish, English and code. It is being trained on 1 trillion tokens. Poro is a fully open source model and is made available under the Apache 2.0 License.
+
+    Poro was created in a collaboration between SiloGen from Silo AI, the TurkuNLP group of the University of Turku, and High Performance Language Technologies (HPLT). Training was conducted on the LUMI supercomputer, using compute resources generously provided by CSC — IT Center for Science, Finland.
+
+    This project is part of an ongoing effort to create open source large language models for non-English and especially low resource languages like Finnish. Through the combination of English and Finnish training data we get a model that outperforms previous Finnish only models, while also being fluent in English and code, and capable of basic translation between English and Finnish.
+
+    Poro 34B is only the first model of our model family. Work is already underway on our next models which will support additional languages, and include features like flash attention, rotary embeddings, and grouped query attention.
+
+Komentokehotteessa anna komento ollama pull paraphrase-multilingual ja latauksen jälkeen refreshaa OpenWebUI, jotta uusi malli näkyy valintalistoissa. Lopuksi muuta hallintapaneelista kohta Upotusmallin moottori: Ollama ja Upotusmalli paraphrase-multilingual.
+Upotusmallin ja moottorin valinta
+
+Upotusmalli vaikuttaa myös siihen kuinka hyvin esimerkiksi pdf-tiedosto luetaan. Tässä esimerkissä olen ladannut 2.6MB pdf-tiedoston ja katson taustaprosessista millaisia asioita Ollama taustalla purkaa.
+Ollama käymässä läpi pdf-tiedoston sisältöä
+
+Kun dokumentti on käyty läpi, LLM-malli on sen myös oppinut ja voit kysyä dokumentista tietoja, esimerkiksi pyytää yhteenvetoa.
+Kuvien tunnistaminen
+
+Lataamalla Ollamaan esimerkiksi mallin llava-llama3 voit pyytää LLM:ää arvoimaan mitä kuvassa näkyy.
+Kuvatunnistus llava-llama3 mallilla
+ChatGPT-keskustelujen tuonti OpenWebUI
+
+Voit tuoda ChatGPT:n kanssa käymäsi keskustelut OpenWebUI lataamalla ChatGPT:stä keskustelusi zip-tiedostoksi ja purkamalla tiedoston. Tarvitset conversations.json-tiedoston:
+ChatGPT conversations
+
+Asetukset (huom! ei hallinta-asetukset) sivulta voit tuoda ChatGPT:n kanssa käymäsi keskustelut historiatietoihisi.
+Keskusteluiden tuonti OpenWebUI
+LLM personalisointi
+
+Voit kertoa LLM:lle taustatietoja tai esimerkiksi mitä haluat nähdä lisäämällä muistia. Englanninkielisessä asetuksissa käytä sanaa User korvaamaan “me” tai “I”.
+
+Esimerkki: “User prefer a conversational style in responses. During the ideation phase, user hope for a more philosophical approach, and in the final phase, more scientific with references and verification, but in a way that the verification does not undermine user’s idea or argument, even if it does not currently have scientific consensus. User typically use American English or Finnish. User like precise definitions, including Latin terms in medicine and taxonomies in biology.”
+Puheentunnistus ja puheen tuottaminen
+
+Voit valita äänen tunnistukseen ja puheen tuottoon käytetyn palvelun. Mikäli käytät Whisperiä, muista laittaa CUDA-tuki päälle Whisperille.
+Ääniasetukset
+
+Voit laittaa esimerkiksi netistä löytyvän podcastin tai minkä tahansa puhetta sisältävän lähetteen pyörimään taustalle ja muuntaa puheen tekstiksi. Englanniksi tämä toimii kohtalaisesti, suomeksi aika heikosti vielä tässä vaiheessa. Muista antaa webselaimelle (url-rivillä punainen mikrofoni) oikein käyttää äänilähdettä.
+Äänen tallentaminen ja tunnistaminen
+
+Muista päivittää ajoittain sekä Ollama että OpenWebUI. Tätä kirjoittaessa Ollama on versiossa 0.3.12 ja OpenWebUI versiossa 0.3.30. Kuten versiointi kertoo, ollaan vielä aika alussa ja voit odottaa paljon kehitystä lähiaikoina!
+
+Nautinnollisia hetkiä LLM:n kanssa!
