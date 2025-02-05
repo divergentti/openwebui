@@ -1,0 +1,239 @@
+You can use free MP3 and MP4 to text transcribers available online. However, if you’d like to experiment with local transcription using transformer models or even integrate Whisper with Open WebUI, give this a try. This approach is especially useful in cases where privacy is paramount, such as with doctors’ notes, as all data remains local and is not transferred over the internet. With local transcription, you can maintain strict data confidentiality while benefiting from the powerful accuracy of transformer-based models.
+
+In this example, I am using the same venv as I used for Ollama — using HuggingFace Safetensor or GGUF models. This means, that activate your venv by command source venv/bin/activate before executing pip-commands or use PyCharm created venv (feel free to create new venv if needed):
+
+pip install --upgrade transformers datasets[audio] accelerate
+
+Successfully installed accelerate-1.0.1 aiohappyeyeballs-2.4.3 
+aiohttp-3.10.10 aiosignal-1.3.1 attrs-24.2.0 audioread-3.0.1 cffi-1.17.1 
+datasets-3.0.2 decorator-5.1.1 dill-0.3.8 frozenlist-1.5.0 fsspec-2024.9.0 
+joblib-1.4.2 lazy-loader-0.4 librosa-0.10.2.post1 llvmlite-0.43.0 
+msgpack-1.1.0 multidict-6.1.0 multiprocess-0.70.16 numba-0.60.0 
+pandas-2.2.3 platformdirs-4.3.6 pooch-1.8.2 propcache-0.2.0 psutil-6.1.0 
+pyarrow-18.0.0 pycparser-2.22 python-dateutil-2.9.0.post0 pytz-2024.2 
+scikit-learn-1.5.2 scipy-1.14.1 six-1.16.0 soundfile-0.12.1 
+soxr-0.5.0.post1 threadpoolctl-3.5.0 tzdata-2024.2 xxhash-3.5.0 yarl-1.17.1
+
+Test torch
+
+CPU is slow for longer audio file transcriptions. Use GPU acceleration (CUDA). For the NVIDIA CUDA use command:
+
+nvidia-smi
+
+If you have CUDA installed, command shows CUDA version on top right. Then, install torch version related to CUDA version, example:
+
+pip3 install torch torchaudio
+
+Then make this tiny python file and test that CUDA works:
+
+import torch
+print(torch.cuda.is_available())  # Should print True
+print(torch.cuda.current_device())  # Should print a valid device index (e.g., 0)
+
+Then test how whisper works by creating a python code, example code:
+
+import torch
+from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
+from datasets import load_dataset
+
+
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+print("Selected device: %s" % device)  # added this for cuda check
+torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
+
+model_id = "openai/whisper-large-v3-turbo"
+
+model = AutoModelForSpeechSeq2Seq.from_pretrained(
+    model_id, torch_dtype=torch_dtype, low_cpu_mem_usage=True, use_safetensors=True
+)
+model.to(device)
+
+processor = AutoProcessor.from_pretrained(model_id)
+
+pipe = pipeline(
+    "automatic-speech-recognition",
+    model=model,
+    tokenizer=processor.tokenizer,
+    feature_extractor=processor.feature_extractor,
+    torch_dtype=torch_dtype,
+    device=device,
+    return_timestamps=True  # added this for longer text
+)
+
+dataset = load_dataset("distil-whisper/librispeech_long", "clean", split="validation")
+sample = dataset[0]["audio"]
+
+result = pipe(sample)
+print(result["text"])
+
+Note, that you shall see selected device: cuda:0 as a first line in console.
+
+Test result :
+
+Mr. Quilter is the apostle of the middle classes, and we are glad to 
+welcome his gospel. Nor is Mr. Quilter's manner less interesting than his 
+matter. He tells us that at this festive season of the year, with 
+Christmas and roast beef looming before us, similes drawn from eating 
+and its results occur most readily to the mind. He has grave doubts whether 
+Sir Frederick Layton's work is really Greek after all, and can discover 
+in it but little of rocky Ithaca. Linnell's pictures are a sort of Up Guards 
+and Adam paintings, and Mason's exquisite idles are as national as a jingo 
+poem. Mr. Birkett Foster's landscapes smile at one much in the same way that
+Mr. Carker used to flash his teeth, and Mr. John Collier gives his sitter a 
+cheerful slap on the back before he says, like a shampooer in a Turkish bath,
+next man.
+
+Now your whisper should work. Next test with mp3-file. For that we need ffmpeg.
+Transcribing mp3 or mp4 files to text
+
+Check that you have ffmpeg installed:
+
+whereis ffmpeg
+ffmpeg -version
+
+If you do not have ffmpeg installed:
+
+sudo apt install ffmpeg
+
+Then install ffmpeg to your Python virtual environment venv:
+
+pip install ffmpeg
+
+Let’s test with Finnish language transcription with testaudio.mp3 (35MB filesize) which I took from an audio book.
+
+I placed filename in result = pipe(“testaudio.mp3”)
+
+import torch
+from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
+from datasets import load_dataset
+
+
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+print("Selected device: %s" % device)
+torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
+
+model_id = "openai/whisper-large-v3-turbo"
+
+model = AutoModelForSpeechSeq2Seq.from_pretrained(
+    model_id, torch_dtype=torch_dtype, low_cpu_mem_usage=True, use_safetensors=True
+)
+model.to(device)
+
+processor = AutoProcessor.from_pretrained(model_id)
+
+pipe = pipeline(
+    "automatic-speech-recognition",
+    model=model,
+    tokenizer=processor.tokenizer,
+    feature_extractor=processor.feature_extractor,
+    torch_dtype=torch_dtype,
+    device=device,
+    return_timestamps=True
+)
+
+dataset = load_dataset("distil-whisper/librispeech_long", "clean", split="validation")
+sample = dataset[0]["audio"]
+
+result = pipe("testaudio.mp3")  # this is a audiobook file, 35MB
+print(result["text"])
+
+You can use multiple files in pipe as described in instructions.
+
+During processing, you can check GPU memory usage with nvidia-smi. In this test VRAM was used 2453MB. Note, that language was detected automatically. You can also define which language you would like to use for transcription. In my case, audio book transciption result was:
+
+“Helmi. Tammen äänikirja. Kirjoittanut John Steinbeck. Suomentanut Alex Mattson. Lukia Ismo Kallio. Levy 1. Kaupungissa kerrotaan tarinaa suuresta helmestä. Kuinka se löytyi ja kuinka se jälleen katosi. Kerrotaan Kinosta, Kalastajasta ja hänen vaimostaan Huaanasta sekä Kojotiitosta, heidän lapsestaan. Ja koska tuota tarinaa kerrotaan yhä uudestaan, se on juurtunut kaikkien mieleen. Ja kuten kaikissa monesti kerrotuissa tarinoissa, jotka elävät kansan sydämessä, siinäkin on vain hyvää ja huonoa. Vain mustaa ja valkoista. Hyvyyttä ja pahuutta, eikä mitään siltä väliltä. Jos tämä tarina on vertauksellinen, niin ehkä jokainen löytää sille oman selityksensä ja lukiessaan sijoittaa siihen oman elämänsä. Oli miten oli….
+
+… removed a lot of text …
+
+joka valaisi maata ja kummankin jalkoja. Miehet kääntyivät kinon risuaidassa olevasta aukosta sisään ja tulivat ovelle. Ja Kino näki, että toinen oli lääkäri ja toinen palvelija, joka oli aamulla avannut portin. Kinoon oikeaan käden rystyset kuumenivat, kun hän tunsi tulokkaat. Lääkäri sanoi, en ollut kotona, kun aamulla kävit luonani, mutta nyt heti ensimmäisen tilaisuuden tarjoutuessa tulin katsomaan lastasi. Kino seisoi oviaukossa tukkiensä ruumillaan ja hänen silmiensä takana riehui ja leimusi viha, mutta myös pelko, sillä vuosisatojen alistuminen istui syvällä hänen lihassaan. Lapsi on nyt melkein terve, hän sanoi lyhyesti. Lääkäri hymyili, mutta pienten rasvapussien reunustamat silmät eivät hymyilleet. Hän sanoi, joskus ystäväiseni skorpioonin pisto vaikuttaa perimerkillisellä tavalla. Paranneminen näyttää taatulta ja sitten aivan ilman varoitusta. Hän mutristi huuliaan ja päästi pienen puhahduksen näyttäykseen, kuinka äkisti loppu saattoi tulla. Ja hän siirteli pientä mustaa lääkärinlaukkuaan saadakseen lyhdyn säteet valaisemaan sitä, sillä hän tiesi, että kinon rotuun kuuluva rakastaa kaikkia ammattivehkeitä ja luottaa niihin. Joskus, lääkäri jatkoi luistavasti, on seurauksena näivettynyt jalka tai menetetty silmä tai kyttyräselkä. Oi, minä kyllä tunnen skorpioonin piston ystäväiseni ja osaan myös sen parantaa. Jatkuu levyllä kaksi.”
+
+So, the test was successful, and transcription was completed locally without any costs (except for the electricity used by your PC or server).
+If you’d like, consider creating a tool for Open WebUI and integrating this feature into it.
+
+Enjoy!
+OT can Python too
+For reference: pip freeze
+
+Sometimes it is easier to understand why something does not work by comparing setups. I had these packages installed (use command pip freeze to check yours):
+
+accelerate==1.0.1
+aiohappyeyeballs==2.4.3
+aiohttp==3.10.10
+aiosignal==1.3.1
+attrs==24.2.0
+audioread==3.0.1
+certifi==2024.8.30
+cffi==1.17.1
+charset-normalizer==3.4.0
+datasets==3.0.2
+decorator==5.1.1
+dill==0.3.8
+diskcache==5.6.3
+ffmpeg==1.4
+filelock==3.16.1
+frozenlist==1.5.0
+fsspec==2024.9.0
+gguf==0.10.0
+huggingface-hub==0.26.2
+idna==3.10
+Jinja2==3.1.4
+joblib==1.4.2
+lazy_loader==0.4
+librosa==0.10.2.post1
+llama_cpp_python==0.3.1
+llvmlite==0.43.0
+MarkupSafe==3.0.2
+mpmath==1.3.0
+msgpack==1.1.0
+multidict==6.1.0
+multiprocess==0.70.16
+networkx==3.4.2
+numba==0.60.0
+numpy==1.26.4
+nvidia-cublas-cu12==12.4.5.8
+nvidia-cuda-cupti-cu12==12.4.127
+nvidia-cuda-nvrtc-cu12==12.4.127
+nvidia-cuda-runtime-cu12==12.4.127
+nvidia-cudnn-cu12==9.1.0.70
+nvidia-cufft-cu12==11.2.1.3
+nvidia-curand-cu12==10.3.5.147
+nvidia-cusolver-cu12==11.6.1.9
+nvidia-cusparse-cu12==12.3.1.170
+nvidia-nccl-cu12==2.21.5
+nvidia-nvjitlink-cu12==12.4.127
+nvidia-nvtx-cu12==12.4.127
+packaging==24.1
+pandas==2.2.3
+platformdirs==4.3.6
+pooch==1.8.2
+propcache==0.2.0
+protobuf==4.25.5
+psutil==6.1.0
+pyarrow==18.0.0
+pycparser==2.22
+python-dateutil==2.9.0.post0
+pytz==2024.2
+PyYAML==6.0.2
+regex==2024.9.11
+requests==2.32.3
+safetensors==0.4.5
+scikit-learn==1.5.2
+scipy==1.14.1
+sentencepiece==0.2.0
+setuptools==75.3.0
+six==1.16.0
+soundfile==0.12.1
+soxr==0.5.0.post1
+sympy==1.13.1
+threadpoolctl==3.5.0
+tokenizers==0.20.1
+torch==2.5.1
+torchaudio==2.5.1
+tqdm==4.66.6
+transformers==4.46.1
+triton==3.1.0
+typing_extensions==4.12.2
+tzdata==2024.2
+urllib3==2.2.3
+xxhash==3.5.0
+yarl==1.17.1
