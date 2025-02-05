@@ -1,0 +1,144 @@
+When it comes to fine-tuning or updating the capabilities of a large language model like LLama3.2, there are often misconceptions about how this process works. In this article, I’ll delve into the details of how knowledge is added to a model and explore the limitations and possibilities of this process.
+Pre-trained Models: Background Knowledge
+
+Most modern language models, including Llama3.2 etc, are built upon pre-trained models that have been fine-tuned on large-scale datasets. These pre-trained models serve as a foundation for LLM capabilities, providing a rich understanding of linguistic structures, semantic relationships, and contextual cues.
+
+The pre-training process involves training the model on massive amounts of text data, which enables it to learn representations of words, phrases, and concepts that can be applied across various tasks and domains. This background knowledge is essential for adapting to new information and generating coherent responses.
+Fine-tuning: Adaptation and Specialization
+
+While the pre-trained model provides a solid foundation, fine-tuning or adaptation involves adjusting the model’s parameters to focus on specific tasks, datasets, or domains. This process requires additional training data, which can be in the form of labeled examples, text files, or even just individual sentences.
+
+Fine-tuning is a crucial step in enabling language models to learn from new information and adapt to changing contexts. However, it’s essential to note that this process is still an area of ongoing research and development.
+Continual Learning: The Challenge
+
+One of the significant challenges in fine-tuning or updating language models is the need for continuous learning. This involves adapting to new information, tasks, and domains over time, which can be difficult due to the vast amount of data required.
+
+Currently, most language models rely on periodic fine-tuning or updating to learn from new information. However, this approach can lead to concerns about model drift, where the updated knowledge becomes outdated before it’s fully integrated into the model.
+Limitations and Possibilities
+
+While there are many exciting developments in the field of few-shot learning and continual learning, there are still significant limitations to be addressed. These include:
+
+Data availability: The amount and quality of training data required for fine-tuning or updating a language model can be daunting.
+Model complexity: Modern language models are often extremely complex, making it challenging to adapt them to new tasks or domains without compromising performance.
+Contextual understanding: While language models excel at generating responses based on patterns and associations, they still struggle with contextual understanding and common sense.
+
+Despite these challenges, researchers and developers continue to push the boundaries of what is possible. Ongoing research in few-shot learning, continual learning, and fine-tuning holds promise for enabling language models to learn from new information and adapt to changing contexts.
+Conclusion about overall learning
+
+Adding knowledge to a language models involves a complex interplay between pre-training, fine-tuning, and adaptation. While the process is still evolving, researchers and developers are making significant strides in developing more sophisticated approaches to learning and updating language models.
+TensorFlow: Understanding Checkpoints and Weights
+
+TensorFlow is a widely-used open-source machine learning framework that has become the de facto standard for deep learning models. At its core, TensorFlow relies on the concept of variables and tensors to represent data and model parameters. In this article, I’ll explore the importance of checkpoints and weights in TensorFlow, and how they impact the performance and efficiency of your models.
+Variables and Weights
+
+In TensorFlow, variables are used to store model parameters, such as learned weights and biases. These variables are typically represented as tensors, which are multi-dimensional arrays that can be manipulated using tensor operations.
+
+Weights are a specific type of variable that represent the strength or coefficient of each connection in a neural network. They play a crucial role in determining how inputs are propagated through the network and what outputs are generated.
+Checkpoints
+
+A checkpoint is a snapshot of the model’s weights at a particular point during training. Checkpoints are used to save the state of the model, allowing you to resume training from where you left off if something goes wrong or if you want to switch between different hyperparameters.
+
+There are several reasons why checkpoints are important:
+
+Model continuity: By saving the weights at regular intervals, you can ensure that your model continues to make progress even if you need to pause or stop training.
+Hyperparameter tuning: Checkpoints allow you to easily experiment with different hyperparameters and see how they impact the performance of your model.
+Training speed: By loading pre-trained checkpoints, you can significantly reduce the amount of time it takes to train a new model.
+Types of Checkpoints
+
+There are two main types of checkpoints in TensorFlow:
+
+Full checkpoint: A full checkpoint includes all the variables and weights in the model, allowing you to resume training from scratch.
+Partial checkpoint: A partial checkpoint includes only the most recent variables and weights, which can be useful if you’re working with limited memory or storage.
+Weights and Their Significance
+
+Weights play a crucial role in determining how inputs are propagated through the network and what outputs are generated. In TensorFlow, weights are typically represented as variables that can be manipulated using tensor operations.
+
+The significance of weights lies in their ability to:
+
+Determine the strength of connections: Weights determine the strength or coefficient of each connection in a neural network.
+Control the flow of information: By adjusting the values of the weights, you can control how inputs are propagated through the network and what outputs are generated.
+How Weights are Updated
+
+In TensorFlow, weights are typically updated using stochastic gradient descent (SGD) or other optimization algorithms. The goal of these algorithms is to minimize the loss function by adjusting the weights in a way that maximizes the model’s performance on the training data.
+Conclusion of Tensorflow
+
+In this article, I explored the importance of checkpoints and weights in TensorFlow. By understanding how to create, load, and use checkpoints, you can save your models’ progress, resume training from where you left off, and improve their performance over time.
+
+Weights play a crucial role in determining how inputs are propagated through the network and what outputs are generated, making them an essential component of any machine learning model. By understanding how weights are updated using stochastic gradient descent or other optimization algorithms, you can fine-tune your models to achieve better results.
+
+So, with limitations mentioned before, you can kind of educate your Large Language Model (LLM) using Workspaces (Työtilat) and creating topics related to the subject matter you want to teach the LLM. For example, I added Psychology information to the LLM by feeding it a 65 MB PDF file about Psychology.
+Where OpenWebUI stores uploaded and vectorized files?
+
+Files are stored under installation directory. In my case I have installed open-webui under /opt, so files I upload are at path /opt/open-webui/venv/lib/python3.11/site-packages/open_webui/data/uploads$
+About tokenizing uploaded files
+
+I’m utilizing the paraphrase-multilingual:latest model and content engine for processing PDFs and other documents. While I’ve fine-tuned my RAG-model slightly, I rely on the default settings for optimal performance.
+
+Once you upload your document to OpenWebUI, Ollama begins processing it. To gauge its performance, simply run the command ollama ps after uploading your file.
+
+NAME                              ID              SIZE      PROCESSOR    UNTIL               
+paraphrase-multilingual:latest    ba13c2e06707    1.0 GB    100% GPU     4 minutes from now     
+llama3.2:3b                       a80c4f17acd5    4.0 GB    100% GPU     46 seconds from now  
+
+In this example, observe that Llama 3.2 and Paraphrase-multilingual are both leveraging GPU acceleration. In an NVIDIA environment, you can further monitor GPU utilization using the nvidia-smi command.
+
+During vectorization at the OpenWebUI backend, you will notice a similar output.
+Screen capture
+
+This screen captures that OpenWebUI is generating vectors, while the TOP command below provides further insight. Notably, it shows that ollama_llama_se is consuming approximately 43.9 GB of memory and utilizing 88.4% of the CPU (after uploading a 65 MB PDF file). Additionally, it's mentioned that the worker was simultaneously learning Finnish.
+Am I safe if I upload secret documents to my LLM?
+
+I conducted a test to verify that when using OpenWebUI in conjunction with Ollama, there are no suspicious network connections. As you can see, even while having WhatsApp open and an active connection to my NFS server, only these two applications were connected, with no other external connections present.
+Adding knowledge on top, connections below
+How to Access Collections?
+
+Once you have added knowledge and processing is complete, you can access collections by using the # character in the same way you would access Web URLs, etc.
+
+The book I uploaded contains text and figures. For example, Figure 16.1 from ATKINSON & HILGARD’S INTRODUCTION TO PSYCHOLOGY appears as follows:
+Figure from page 582 — CHAPTER 16 TREATMENT OF MENTAL HEALTH PROBLEMS
+
+Next, I wanted to test how well different models understand the provided paragraph. To do this, I posed a question using the #Psychology collection selection command: “Can you show me the trends in the number of psychiatric beds in Western Europe from 1978–2002?”
+
+Response by LLama3.2:
+
+    llama3.2:3b 4:01 pm
+
+    Unfortunately, the provided context information does not include a paragraph specifically titled “Trends in the numbers of psychiatric beds in western Europe 1978–2002”. However, there is a figure (Figure 16.1) and another figure (Figure 16.2) that show trends in psychiatric bed numbers for various European countries.
+
+    The provided context information does mention that Figure 16.1 shows “Trends in the numbers of psychiatric beds in western Europe 1978–2002” and Figure 16.2 shows “Trends in the numbers of psychiatric beds in the new EU Member States, 1988–2002”.
+
+    Based on this information, I can provide a general overview of the trends mentioned in these figures.
+
+    Figure 16.1 (not shown) appears to show a decrease in the number of psychiatric beds in western European countries between 1978 and 2002. However, the exact trend is not explicitly stated.
+
+    Figure 16.2, which shows “Trends in the numbers of psychiatric beds in new EU Member States, 1988–2002”, suggests that some new EU member states (e.g., Sweden) have experienced a more significant decrease in psychiatric bed numbers than others (e.g., the United Kingdom). The figure also implies that reductions in psychiatric hospitalization have occurred in many European nations.
+
+    Please note that without access to the actual figures, I can only provide a general interpretation of the trends mentioned. If you have any further questions or would like more information on this topic, please let me know!
+
+Next, I switched to the Mistral model and posed the same question in a new chat session. The response was:
+
+    mistral:latest 4:13 pm
+
+    Figures 16.1 and 16.2 from the European health for all database, WHO Regional Office for Europe (2004), provide trends in the number of psychiatric beds in Western Europe between 1978 and 2002. Figure 16.1 shows a significant reduction in the number of patients treated in specialized psychiatric facilities across many European nations. However, reductions have been less pronounced in some countries recently admitted to the European Union. Specifically, as per Figure 16.2, new EU member states show less of a decrease in psychiatric hospitalization.
+
+And then I tried Gemma2 with the same question in a new chat session:
+
+    gemma2:latest
+
+    Reductions in the number of patients treated in specialized psychiatric facilities have occurred in many European nations. Figure 16.1 shows trends in the numbers of psychiatric beds in western Europe from 1978 to 2002.
+
+And then I tried Llava13b with the same question:
+
+    llava:13b 4:16 pm
+
+    Certainly! Based on the context provided, here is a paragraph that presents trends in the numbers of psychiatric beds in Western Europe between 1978 and 2002.
+
+    During this period, there were significant reductions in the number of patients treated in specialized psychiatric hospitals across many European countries. The provided figures (Figures 16.1 and 16.2) illustrate that the United Kingdom had around 450 psychiatric beds per 100,000 population in 2002, while Sweden had no psychiatric beds per 100,000 population. These figures indicate a general trend towards deinstitutionalization, with some countries experiencing more pronounced reductions than others. Despite these variations, the data demonstrates a clear movement away from institutionalized mental health care in favor of community-based treatment options during this timeframe.
+
+And finally, I tried Llava-llama3:
+
+As expected, Llava-llama3 successfully identified names in the trend figure. Well done!
+
+In conclusion, I tested the ability of various models, LLama3.2, Gemma2, Llava13b, and Llava-llama3, to understand and extract insights from a given paragraph I “educated” via OpenWebUI.
+
+While each model had its strengths and weaknesses, Llava-llama3 ultimately demonstrated the best results in identifying names in the trend figure. This testing provides valuable insight into the capabilities and limitations of these models, and can inform future research and development in natural language processing.
