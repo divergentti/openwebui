@@ -1,0 +1,178 @@
+I tested Microsoft’s https://ollama.com/library/phi4 with Ollama and Open WebUI. Phi-4 is a 14B parameter, state-of-the-art open model built upon a blend of synthetic datasets, data from filtered public domain websites, and acquired academic books and Q&A datasets.
+
+I tested the Phi with four logic tests and all answers were correct.
+
+Capabilities:
+
+    I’m designed to assist with a variety of tasks by providing information, answering questions, and facilitating problem-solving across numerous domains. Here are some key capabilities:
+
+    1. Information Retrieval: I can provide factual information on a wide range of topics, including science, history, technology, and more.Let me check:
+
+    2. Textual Analysis: I’m capable of understanding and generating text-based content, which helps in summarizing articles, providing explanations, or creating written pieces.
+
+    3. Language Processing: My skills include language translation (to some extent), grammar checking, and assisting with writing tasks like drafting emails or essays.
+
+    4. Problem Solving: I can help solve mathematical problems, assist with coding questions, and provide guidance on logical reasoning tasks.
+
+    5. Knowledge Base Updates: While my knowledge is up-to-date only until October 2023, I can offer insights into developments known up to that point.
+
+    6. Guidance and Recommendations: I can suggest resources for learning or provide advice on various subjects within the scope of my training data.
+
+    7. Clarification and Explanation: If you have complex questions, I can help break down concepts and explain them in simpler terms.
+
+    8. Ethical and Safe Interaction: I’m designed to prioritize user safety, privacy, and ethical guidelines during our interactions.
+
+    If there’s a specific area you’re interested in or need assistance with, feel free to ask!
+
+Languages:
+
+    I am capable of understanding and generating text in multiple languages. Here are some of the primary ones I work with:
+
+    1. English: My core language for detailed interactions and providing comprehensive information.
+    2. Spanish: For assisting users who prefer to communicate in Spanish.
+    3. French: To support users looking for assistance in French.
+    4. German: For those who wish to use German in their queries or responses.
+    5. Mandarin Chinese: Offering basic conversational abilities and text generation in Mandarin.
+
+    I can also work with several other languages to some extent, but my proficiency is highest in the ones listed above. If you have questions or need assistance in any of these languages, feel free to ask!
+
+Test question: “A farmer has a wolf, a goat, and a cabbage. He needs to cross a river but his boat can only carry him and one of his possessions at a time. The wolf cannot be left alone with the goat, and the goat cannot be left alone with the cabbage. How does the farmer get everything across the river safely?”
+
+    This is a classic logic puzzle that requires careful planning to ensure all items are transported safely across the river without any conflicts. Here’s how the farmer can do it:
+
+    1. **First Trip**: Take the goat across the river and leave it on the other side.
+     — *Left bank*: Wolf, Cabbage
+     — *Right bank*: Goat
+
+    2. **Return Trip**: Go back alone to the original side.
+     — *Left bank*: Farmer, Wolf, Cabbage
+     — *Right bank*: Goat
+
+    3. **Second Trip**: Take the wolf across the river and leave it on the other side. Bring the goat back with him.
+     — *Left bank*: Goat
+     — *Right bank*: Wolf
+     — *Boat*: Farmer, Cabbage
+
+    4. **Third Trip**: Leave the goat back at the starting side and take the cabbage across to join the wolf.
+     — *Left bank*: Goat
+     — *Right bank*: Wolf, Cabbage
+
+    5. **Return Trip**: Go back alone to the original side one more time.
+     — *Left bank*: Farmer, Goat
+     — *Right bank*: Wolf, Cabbage
+
+    6. **Final Trip**: Take the goat across the river again.
+
+    At this point:
+    - *Left bank*: (empty)
+    - *Right bank*: Farmer, Goat, Wolf, Cabbage
+
+    By following these steps, the farmer successfully transports all three items safely without any of them being left alone in a risky situation.
+
+Correct!
+
+If two opposite corners of a chessboard are removed, is it possible to cover the remaining 62 squares with 31 dominoes, where each domino covers exactly two squares?
+
+    This problem can be solved by considering the coloring pattern of a standard chessboard and how dominoes fit into this pattern.
+
+    1. **Chessboard Coloring**: A standard 8x8 chessboard is colored in an alternating black-and-white pattern, much like a checkerboard. This means that there are exactly 32 squares of each color (black or white).
+
+    2. **Removing Opposite Corners**: If you remove two opposite corners from the chessboard, both corners will be of the same color. For example, if the board is colored starting with a black square in one corner, removing two opposite corners will remove two black squares.
+
+    3. **Remaining Squares**: After removing these two squares, 62 squares remain: 30 squares of one color and 32 squares of the other color.
+
+    4. **Domino Coverage**: A domino placed on a chessboard always covers exactly one black square and one white square because it spans two adjacent squares in any configuration.
+
+    Given that you now have an imbalance in the number of black and white squares (30 of one color, 32 of another), it’s impossible to cover all remaining squares with dominoes. Each domino would need to cover one square of each color, but since there are more squares of one color than the other, not all can be paired this way.
+
+    Therefore, it is **not possible** to cover the remaining 62 squares with 31 dominoes after removing two opposite corners from a chessboard.
+
+Correct!
+
+Four people need to cross a rickety bridge at night. They have only one flashlight and the bridge is too dangerous to cross without it. The bridge can only hold two people at a time. Each person takes a different amount of time to cross: 1 minute, 2 minutes, 5 minutes, and 10 minutes. When two people cross together, they have to move at the slower person’s pace. How can they all get across in 17 minutes or less?
+
+    This is another classic logic puzzle that requires strategic planning to minimize the total time taken for everyone to cross the bridge. Here’s how the four individuals can cross the rickety bridge in 17 minutes or less:
+
+    1. **Initial Setup**: Let’s denote the four people by their crossing times: A (1 minute), B (2 minutes), C (5 minutes), and D (10 minutes).
+
+    2. **First Crossing**: Send A and B across first.
+     — Time taken = 2 minutes
+     — *Left bank*: C, D
+     — *Right bank*: A, B
+
+    3. **Return Trip**: Have A return with the flashlight.
+     — Time taken = 1 minute (total so far: 3 minutes)
+     — *Left bank*: A, C, D
+     — *Right bank*: B
+
+    4. **Second Crossing**: Send C and D across together.
+     — Time taken = 10 minutes (total so far: 13 minutes)
+     — *Left bank*: A
+     — *Right bank*: B, C, D
+
+    5. **Return Trip**: Have B return with the flashlight.
+     — Time taken = 2 minutes (total so far: 15 minutes)
+     — *Left bank*: A, B
+     — *Right bank*: C, D
+
+    6. **Final Crossing**: Send A and B across again.
+     — Time taken = 2 minutes (total time: 17 minutes)
+
+    At this point:
+    - Everyone is on the right side of the bridge.
+
+    The sequence minimizes the total crossing time by ensuring that slower crossings are paired together when possible, while faster individuals handle more flashlight returns. Thus, all four can cross in exactly 17 minutes.At this point:
+    - Everyone is on the right side of the bridge.
+
+    The sequence minimizes the total crossing time by ensuring that slower crossings are paired together when possible, while faster individuals handle more flashlight returns. Thus, all four can cross in exactly 17 minutes.
+
+Correct!
+
+Seven prisoners are given hats to wear. They are told that there are seven hats, each of which is either black or white. Each prisoner can see the hats of the others but not their own. The prisoners will be released if at least one of them can correctly guess the color of their own hat. The prisoners are allowed to discuss a strategy before they are given the hats. What strategy should they use to maximize their chances of being released?
+
+    To solve this problem, the prisoners need to devise a strategy that maximizes their chances of at least one prisoner guessing the color of their own hat correctly. Here’s an effective strategy they can use:
+
+    1. **Assign Numbers**: Each prisoner is assigned a number from 0 to 6.
+
+    2. **Agreement on Parity Strategy**: The prisoners agree beforehand to use the concept of parity (odd or even) to determine the sum of the hats they see. They will consider black as representing “1” and white as “0”.
+
+    3. **Determine Total Hat Parity**: Each prisoner computes the total number of black hats they can see on the other six prisoners’ heads.
+
+    4. **Declaration Based on Observed Parity**:
+     — The prisoner designated as “Prisoner 0” will sum up the colors (considering black as “1” and white as “0”) of all visible hats.
+     — If this sum is even, Prisoner 0 declares their hat to be white (0).
+     — If this sum is odd, Prisoner 0 declares their hat to be black (1).
+
+    5. **Remaining Prisoners’ Strategy**:
+     — Each subsequent prisoner (Prisoners 1 through 6) will do the same calculation as Prisoner 0 but also take into account what Prisoner 0 declared.
+     — For each prisoner \(i\) (where \(i > 0\)), they calculate the sum of hats visible to them and check if it matches the parity announced by Prisoner 0 after accounting for their own hat being either black or white. If there is a discrepancy, they conclude that their hat must be black; otherwise, it’s white.
+
+    This strategy works because:
+
+    - **At least one correct guess**: Due to how parity functions as an error-checking mechanism in binary systems, at least one prisoner (Prisoner 0) will always correctly deduce the color of their own hat. This is because if all prisoners had guessed incorrectly based on the visible hats, it would result in a different overall parity than what was announced by Prisoner 0.
+     
+    - **Maximizes chance**: Since only one prisoner needs to guess correctly for them to be released, this strategy ensures that they will always achieve at least one correct answer.
+
+    Thus, the prisoners’ use of parity and their pre-determined roles in evaluating it guarantees their release.
+
+Correct!
+
+You are on a game show and given the choice of three doors. Behind one door is a car; behind the others, goats. You pick a door, say №1, and the host, who knows what’s behind the doors, opens another door, say №3, which has a goat. He then says to you, “Do you want to pick door №2?” Is it to your advantage to switch your choice?
+
+    This is a well-known problem called the Monty Hall Problem, and it can be counterintuitive at first glance. However, switching doors is indeed advantageous, and here’s why:
+
+    1. **Initial Choice**: When you initially choose one of the three doors (say Door 1), there is a \( \frac{1}{3} \) probability that you have chosen the door with the car behind it, and a \( \frac{2}{3} \) probability that the car is behind one of the other two doors.
+
+    2. **Host’s Action**: The host, who knows what is behind each door, will always open another door (say Door 3) to reveal a goat. This action provides additional information because the host will never open the door with the car behind it.
+
+    3. **Probability Analysis**:
+     — If your initial choice was correct (a \( \frac{1}{3} \) chance), switching would result in losing the car.
+     — If your initial choice was incorrect (a \( \frac{2}{3} \) chance), the host’s action of revealing a goat means that the remaining unchosen door must have the car behind it.
+
+    4. **Switching Advantage**: 
+     — By switching, you effectively bet on the scenario where your initial choice was wrong (\( \frac{2}{3} \)), which is more likely than being correct initially.
+     — Therefore, switching gives you a \( \frac{2}{3} \) chance of winning the car, compared to sticking with your original choice, which only has a \( \frac{1}{3} \) chance.
+
+    In conclusion, it is always to your advantage to switch doors after the host reveals a goat behind one of the other two doors. This strategy doubles your chances of winning the car from 33% to 66%.
+
+Correct!
