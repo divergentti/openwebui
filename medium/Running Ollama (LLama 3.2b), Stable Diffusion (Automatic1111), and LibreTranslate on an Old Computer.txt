@@ -1,0 +1,105 @@
+I wanted to test how my old PC with an NVIDIA 1080 Ti performs when I load four backends simultaneously: OpenWebUI, Ollama, Stable Diffusion (Automatic1111), and LibreTranslate.
+
+To do this test, I created a picture first, then asked the response to be translated into Finnish. During the generation process, I used the nvidia-smi command to monitor GPU utilization.
+
+For the Automatic1111 startup I used parameters optimized for medium VRAM GPU:
+
+ --opt-split-attention --medvram --xformers --no-half-vae --api --listen
+
+For the OpenWebUI I used parameters:
+
+export USE_CUDA_DOCKER=True
+export ENABLE_IMAGE_GENERATION=True
+export PDF_EXTRACT_IMAGES=True
+
+In the OpenWebUI settings page for Automatic1111, I specified the Turbo SDXL model, with the sample type set to DPM++ SDE, the scheduler configured as Karras, a CFG scale of 2, and a resolution of 1024x1024.
+
+    The DPM++ SDE (Denoising Probabilistic Model with Stochastic Differential Equations) sampler is a diffusion-based model that provides more stable and high-quality image generation, especially useful for complex scenes.
+    The Karras scheduler is known for its smooth noise scheduling, improving the quality and consistency of outputs across steps.
+    The CFG scale (Classifier-Free Guidance scale) controls the trade-off between adhering to the text prompt and generating diverse outputs, with a lower value (like 2) typically offering more creative freedom but less strict adherence to the prompt.
+
+With Turbo and Lightning modes enabled, which accelerate the diffusion process, just 6 sampling steps are sufficient for generating high-quality images, greatly reducing processing time while maintaining output fidelity.
+
+The LibreTranslate startup was simply:
+
+source venv/bin/activate
+libretranslate
+
+Prompt for the image generation was:
+
+    Make me image of a witch (blond, red eyes, leather clothing, diamonds, earrings) holding a burning (firemode) iceball. Golden ratio, insane details, masterpiece, 35mm photography, dslr, kodachrome, 8k, hdr, vivid and vibrant colors, reflections.
+
+Image generation with OpenWebUI
+
+LLama 3.2b response was:
+
+    Image Generation Successful
+
+    Your image of a witch has been successfully generated.
+
+    A mesmerizing figure emerges from the shadows, clad in sleek leather attire adorned with glinting diamonds and intricate earrings that seem to shimmer in the flickering light. Her raven tresses cascade down her back like a waterfall of night, framing an ethereal visage with piercing red eyes that burn like hot coals.
+
+    In one hand, she grasps a blazing iceball, its icy surface reflecting the vibrant hues of the surrounding environment like a kaleidoscope of colors. The golden ratio governs the composition, imbuing the image with a sense of balance and harmony that belies the fantastical elements at play.
+
+    The camera captures the scene in stunning 35mm photography, evoking the classic aesthetic of DSLRs and the timeless allure of Kodachrome film stock. As the light catches the subject’s features, it transforms her into a living, breathing masterpiece — a true work of art that defies the boundaries of reality.
+
+    In HDR, every detail is amplified, casting no shadows and rendering the image in resplendent 8K clarity. Vibrant colors dance across the frame, imbuing the witch’s world with an otherworldly aura that seems to pulse with life.
+
+    As the light dances across her reflection, it creates a dazzling display of color and texture, as if the very fabric of reality is being manipulated by the witch’s presence. It’s an image that will leave you breathless, a true tour de force of visual artistry that will haunt your dreams long after the moment has passed.
+
+Then I clicked Multitranslate button:
+
+    — — — Translated to: fi language — — — !
+
+    [muokkaa | muokkaa wikitekstiä] (/cache/image/generations/c6748cbbb-1eb6–434d-93f1–888033e93124.png) ***Image Generation Successful
+
+    Kuvasi noidasta on tuotettu onnistuneesti.
+
+    Mesmerointihahmo nousee varjoista, tahraa sleekissä nahkapuvussa, joka on koristeltu kirkastavilla timanteilla ja monimutkaisilla korvakorvikkeilla, jotka näyttävät paistavan valossa. Hänen kosteat tressinsä kaskeroivat hänen selkänsä kuin yön vesiputouksen, kehystäen eteerisen visagen lävistys punaiset silmät, jotka polttavat kuin kuumat hiilet.
+
+    Yhdessä kädessä hän tarttuu vilkkaaseen jääpalloon, sen jääiseen pintaan, joka heijastaa ympäröivän ympäristön elinvoimaisia sävyjä, kuten värien kaleidoskooppia. Kultainen suhde hallitsee koostumusta, kuvan imbuoiminen tasapainon ja harmonian tunteella, joka uskoo pelin fantastisiin elementteihin.
+
+    Kamera vangitsee näyttämön upeassa 35mm:n valokuvauksessa, herättää DSLR:n klassisen estetiikan ja Kodachromen elokuvakannan ajattoman houkutuksen. Kun valo tarttuu aiheen ominaisuuksiin, se muuntaa hänet eläväksi, hengittäväksi mestariteokseksi — todelliseksi taideteokseksi, joka täyttää todellisuuden rajat.
+
+    HDR:ssä kaikki yksityiskohdat ovat vahvistuneet, ei varjoja ja kuvan muuttaminen 8K:n selkeydellä. Vibrant värit tanssivat kehyksen yli, jäljittelemällä noidan maailmaa toisella tavalla auralla, joka tuntuu pulssivan elämää.
+
+    Kun valo tanssii hänen heijastuksensa yli, se luo häikäisevän väri- ja tekstuurinäytön, ikään kuin noidan läsnäolo manipuloi todellisuutta. Se on kuva, joka jättää sinut hengittämättömäksi, todellinen visuaalisen taiteen kiertue, joka kummittelee unelmiasi kauan sen jälkeen, kun se on ohi.
+
+GPU utilization and memory usage
+
+During image generation GPU utilization was at peak, but LibreTranslate was so fast, that I did not catch how much it caused GPU utilization while translated.
+nvidia-smi (GPU utilization) during image generation
+
+Ollama (ollama ps) seems to use 4GB for llama3.2b and 1GB for paraphrase-multilingual during imeage generation:
+
+NAME ID SIZE PROCESSOR UNTIL 
+llama3.2:3b a80c4f17acd5 4.0 GB 100% GPU 4 minutes from now 
+paraphrase-multilingual:latest ba13c2e06707 1.0 GB 100% GPU 4 minutes from now
+
+I didn’t encounter any CUDA Out Of Memory errors during this test, which suggests that older gaming PCs can handle relatively complex setups like this. Even better, if you have multiple older PCs with Nvidia 1080Ti GPUs, you can distribute them across your LAN, with each acting as a server to provide subservices for OpenWebUI.
+Internet connections for LLM, translate and image generations
+
+Locally installed translators and LLMs are an excellent choice, provided they can be configured to neither send nor receive data over the internet. Servers can operate within the same subnet (LAN) or VLANs, completely isolated from the internet.
+
+If you use multiple servers in your LAN for applications like Stable Diffusion, you can switch between them by adjusting server addresses and ports as needed.
+
+To ensure that everything runs locally without any internet communication, I closed all programs and physically disconnected the Ethernet cable from my old PC. All backends started normally.
+Automatic1111, OpenWebUI and LibreTranslate backends
+
+Monitoring network activity with iftop showed nothing, as expected, since the Ethernet cable was disconnected.
+iftop command, no connections
+
+Similarly, translation did not try to connect to any Internet addresses:
+iftop during translation
+Summary
+
+You can run Ollama, Stable Diffusion, LibreTranslate, and OpenWebUI on an older PC, but whether this is the best option depends on your needs. While older hardware can handle these tasks, it might be less efficient compared to more modern systems, especially when running resource-intensive applications like Stable Diffusion. Using the Automatic1111 frontend for Stable Diffusion, for example, offers far more flexibility with additional parameters and options, allowing for more efficient performance on capable machines.
+
+In a business or home environment, where multiple users want secure, offline access without internet connectivity, running such services locally through OpenWebUI can be a very viable solution. Scenarios where this setup makes sense include:
+
+    Privacy and Security Concerns: Sensitive data can be processed entirely on local machines, without exposing anything to the cloud or external servers, which is critical for businesses handling proprietary or confidential information.
+    Cost-Effectiveness: Utilizing older PCs with Nvidia 1080Ti GPUs or similar hardware can be a cost-effective solution, particularly for small businesses or individuals who cannot invest in cloud services or newer hardware.
+    Distributed Setup for Efficiency: If you have multiple older PCs with GPUs, you can distribute workloads across your local network. Each PC can act as a server, handling specific tasks like running Stable Diffusion, LibreTranslate, or other LLM-based services, thereby optimizing performance without upgrading hardware.
+    Offline Availability: In situations where reliable internet connectivity is not guaranteed or where full offline functionality is required (e.g., remote locations or highly secure environments), locally running these tools ensures uninterrupted access to machine learning models and translation services.
+
+While this setup may not be the most powerful, it can still be a practical and secure solution, especially when combined with a well-structured LAN to distribute the workload.
