@@ -1,0 +1,55 @@
+Ollama, using the Qwen2-Math model, can solve mathematical puzzles surprisingly well, even on GPUs with low VRAM. In this article, I demonstrate Qwen2-Math’s performance with six test questions.
+
+Download the latest version from Ollama’s Qwen2-Math library, or simply run ollama pull qwen2-math:7b, or the 1.5B version depending on your needs. The 72B version is likely impractical for typical home users due to high VRAM demand.
+Test question 1
+
+Q: Simplify this: 1/(1+sqrt(2))
+
+A: sqrt(2)​−1 = correct. See result video below.
+Screen capture from both questions
+Test question 2
+
+Q: “I have old and new potatos. I have incubated both potatoes in NaCl reagent solutions: 0.0025, 0.1, 0.2, 0.3 and 0.4 mol/l. Solution I had 15 milliliters. Incubation time was 2 hours 10 minutes and temperature 24 Celcius. I measured weights of the potatoes before and after incubation. They were: old patato before incubation in 0.025M solution 6.08 grams, 0.1M solution 6.05 grams, 0.2M solution 6.15 grams, 0.3M solution 6.05 grams and 0.4M solution 5.74. After incubation the old potato weigh in 0.025M solution 6.46 grams, 0.1M solution 6.05 grams, 0.2M solution 5.81 grams, 0.3M solution 6 grams and 0.4M solution 4.48 grams. The new potato weigh before incubation in 0.0025M solution 6.08 grams, 0.1M solution 6.05 grams, 0.2M solution 6.15 grams, 0.3M solution 6.05 grams and in 0.4M solution 6.12 grams. After incubation the new potato weigh in 0.025M solution 6.86 grams, 0.1M solution 6.51 grams, 0.2M solution 6.23 grams, 0.3M solution 5.39 grams and 0.4M solution 5.11. Osmoles are 2 (Na + Cl). Osmolar is osmoles*reagens (i*c), as an example solution 0.025M * 2 = 0.05 osmmol/l. Calculate i*c for each solution. Molar mass for NaCl is 58.44276 g/mol, Na+ atomic mass 22.98977, Cl atomic mass 35.453, Na+ mass percentage 39.337, Cl mass percentage 60.663, Na+ density in 20 celcius 0.971 kam, and Cl 3.14 in 27 Celcius and 1.013 bar. R L/MPa/mol K is 0.00831441 for all solutions, temperature 24 Celcius is 297.15 K, osmotic pressure P= cRT is calculated by multiplying solution, R and temperature in K. Example: 0.0025M * 0.00831441 (R) * 297.15 (K) = cRT 0.0617656732875. Then osmotic potential (-icRT) is osmoles (2) * 0.0025M * 0.00831441 (R) * 297.15 K = -0.123531346575. Calculate how many grams in each solution I had Na+ and Cl. Calculate weight difference before and after incubation for both potatoes in each solution. Then calculate potato membrane water potential (cRT+icRT) for each solution (15 ml). Last, calculate osmolar (i*c) osmol/l for each solution and osmotic potential MPa (-icRT) for each solution and then calculate both potato water potential.”
+
+A: See the video above.
+Waterpotential graph
+Test question 3
+
+Quite a few LLM fails in this:
+
+Q: There is two fives in ten, how many tens are in hundred?
+
+A: Ten is a unit of quantity that represents the number 10. It is the base unit in the decimal system, which is the most commonly used system of numerals in the world. A “hundred” is also a unit of quantity, but it represents the number 100. In other words, a hundred is ten times larger than a ten. Therefore, there are ten tens in a hundred. This can be seen by the following calculation: 100 ÷ 10 = 10 So, just as there are two fives in ten (10 ÷ 5 = 2), there are ten tens in a hundred (100 ÷ 10 = 10).
+Test question 4
+
+Q: There is a basket containing 5 apples, how do you divide the apples among 5 children so that each child has 1 apple while 1 apple remains in the basket?
+
+A: It is not possible to divide 5 apples among 5 children such that each child has 1 apple and there is still 1 apple left in the basket. This is because if each of the 5 children takes 1 apple, then all 5 apples would be taken, and there would be no apples left in the basket.
+
+R: Wrong: 4 children get 1 apple each while the fifth child gets the basket with the remaining apple still in it.
+
+A: The solution you proposed is not correct because if each of the first four children takes one apple, then there are only two apples left, and the fifth child would take those two apples along with the basket, leaving no apples in the basket. The problem asks for a way to divide the apples such that each child has one apple and there is still one apple left in the basket. This can be achieved by giving each of the first four children an apple and then giving the fifth child the basket with the remaining apple still in it.
+Test question 5
+
+Q: There is a three-digit number. The second digit is four times as big as the third digit, while the first digit is three less than the second digit. What is the number?
+
+A: Let’s denote the digits of the three-digit number as A (the hundreds place), B (the tens place), and C (the units place). According to the problem:
+
+    The second digit (B) is four times as big as the third digit (C ), so we can write this as: B = 4C
+    The first digit (A) is three less than the second digit (B), so we can write this as: A = B — 3. Substituting the expression for B from the first equation into the second equation, we get: A = 4C — 3 Now, we need to find a value for C that makes A and B valid digits (i.e., between 0 and 9). Since B = 4C, C can only be 1 or less (because if C were 2, B would be 8 and A would be 5–3 = 2, which is a valid digit, but if C were 3, B would be 12, which is not a valid digit). If C were 0, then B would be 0 and A would be -3, which is not a valid digit. Therefore, the only possible value for C is 1. Substituting C = 1 into the equations for B and A, we get: B = 4 * 1 = 4 A = 4–3 = 1 So, the three-digit number is 141. (correct, could be also 582)
+
+Test question 6
+
+Q: A ship anchored in a port has a ladder which hangs over the side. The length of the ladder is 200cm, the distance between each rung in 20cm and the bottom rung touches the water. The tide rises at a rate of 10cm an hour. When will the water reach the fifth rung?
+
+A: The problem can be solved by calculating how much the water level needs to rise for the water to reach the fifth rung, and then determining how long it takes for the tide to rise that amount. The distance from the bottom rung to the fifth rung is: 5 * 20cm = 100cm Since the tide rises at a rate of 10cm per hour, the time it will take for the water to rise 100cm is: 100cm / 10cm/hour = 10 hours Therefore, the water will reach the fifth rung in 10 hours.
+
+R: The tide raises both the water and the boat so the water will never reach the fifth rung.
+
+A: I apologize for the misunderstanding in my previous response. You are correct that the water level rising with the ship means that the relative distance between the water and the rungs of the ladder remains constant. If we consider the initial state, where the bottom rung is touching the water, then the water will not reach the fifth rung because it would need to rise 100cm relative to its starting point. However, as the tide rises, both the water and the ship (and therefore the ladder) are rising at the same rate. So, if we consider the absolute distance from the bottom of the ladder to the water, that will not change because it is the initial condition set by the height of the ladder when it was first hung over the side. The relative distances between the rungs and the water remain the same as they were initially. Therefore, the water will never reach the fifth rung if we are considering the absolute distance from the bottom of the ladder to the water, because that distance is fixed at 200cm when the ladder was hung over the side. The tide will just carry both the ladder and the water higher up in the water, but the relative positions of the rungs and the water will remain the same. I apologize for my previous misunderstanding and thank you for clarifying.
+Test question 7
+
+Q: Let’s see can you gifure out correct three digit number. In number 682 one number is correct and well placed. In number 614 one number is correct but wrongly placed. In number 206 two numbers are correct but wrongly placed. In number 738 nothing is correct. In number 780 one number is correct but wrongly placed. So, what is correct three digit number?
+A: 841
+
+These examples demonstrates the impressive capabilities of mathematics-optimized large language models (LLMs) like Qwen2-Math. Not only is it powerful, but it’s also free and straightforward to install, making it accessible for anyone interested in solving mathematical problems with AI. Whether you’re working on complex equations or just curious about its potential, give it a try and experience the future of AI-driven problem solving for yourself!
