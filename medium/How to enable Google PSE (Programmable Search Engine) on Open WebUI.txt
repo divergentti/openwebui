@@ -1,0 +1,47 @@
+Google PSE, short for Programmable Search Engine, could be integrated with Open WebUI and Ollama.
+Simplified instructions
+
+Step 1: Join Google Developer Program
+
+    Free and easy to join
+    Create a Search Engine from the Control Panel link
+
+Step 2: Configure Search Engine Settings
+
+    Get two important pieces of information: search engine ID (Hakukoneen tunnus): a long hex code (e.g., f1f8abcde1bdd12f3) and place this in Open WebUI’s Google PSE Module ID field. Create an API-key at Custom Search JSON API (paid max 10,000 queries per day, free 100 queries per day) and place this in Open WebUI’s Google PSE-key field
+
+Step 3: Enable Google PSE in Open WebUI
+
+    Go to Open WebUI settings for Google PSE
+    Enable search by model or press the +-sign in the chat window
+    Note that search capabilities are tied into model capabilities too!
+
+Now, here are some key points about pricing and limitations:
+
+    Free : 100 queries per day with the custom search engine
+    Custom Search JSON API : max 10,000 queries per day (paid plans available for more queries)
+    Pricing : depends on the number of queries needed, but generally ranges from $0.01 to $0.10 per query
+
+Please note that these instructions and pricing information are subject to change, and you should always check the official Google PSE documentation for the latest updates.
+Detailed instructions
+
+Join Google Developer program. It is free.
+
+Check Google Progammable Search Engine instructions for more information. Check this instruction about pricing.
+
+From Programmable Search Engine and search engine you created, you need two pieces of information for the Open WebUI:
+
+    Search engine id (Hakukoneen tunnus). This will be long hex code like f1f8abcde1bdd12f3 (this is random number) Place this to Open WebUI Goolge PSE Module ID (Google PSE -moduulin tunnus).
+    Then create API-key at Custom Search JSON API (Custom Search JSON API provides 100 search queries per day for free. If you need more, you may sign up for billing in the API Console. Additional requests cost $5 per 1000 queries, up to 10k queries per day). Place this to Open WebUI Google PSE-key (Google PSE API -avain).
+
+Open WebUI settings for Google PSE
+
+Then enable search by model or by pressing +-sign in the chat window.
+
+Note that search capabilities are tied into model capabilities!
+
+In this example question, Gemma2 gave just recommedation, Llama3.2b brought information from statista.com, not from Tilastokeskus, because Llama3.2b did not know what is Tilastokeskus and Tilastokeskus is nowdays stat.fi :)
+Gemma2 and LLama3.2 difference in search responses
+
+For accurate information I used #https://stat.fi in my question prompt and now Llama3.2 knows where to go:
+Information by Llama3.2 and Google PSE
