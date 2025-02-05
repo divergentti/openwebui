@@ -1,0 +1,304 @@
+Did you know that you can integrate an LLM model into a conversation using the ‘@’ character? For example, you can ask questions to a locally installed LLM and then continue with remote agents. I utilized this feature to create a pipeline for the Mistral API, enabling Mistral Agents to be used directly in conversations.
+
+In this example, I demonstrate how to use the Social Worker agent via the Open WebUI interface (in Finnish). I have trained the agent with the latest social work legislation in Finnish (Sosiaalihuoltolain soveltamisopas 2024, link) and more. This is similar to the Sosiaalineuvoja (Social Instructor) for ChatGPT that I created last year (link).
+
+Next, I will explain how to enable these features in Open WebUI and Mistral. You can start with Mistral’s free plan, as it works well for testing.
+Create and fine tune your agent
+
+Go to Mistral Agents (link) and create your agent. Check “API” and copy the agent ID (begins with ag:). If you do not have free or paid substriction, you can activate it here (link). You need to copy the agent ID to the Python code below, which will be a new Function in Open WebUI.
+Agent creation at Mistral website
+
+Remember to train the agent with typical questions and responses. In this case dialogue and empathy are key for succesfull converstation.
+Adjust the Function code for your agent
+
+Since we are pointing to the agent with the ‘@’ character, each agent needs its own function. In the code code below, update the following lines:
+
+self.agent_1_id = "ag:xxxxx"  # This ID is from the Mistral website.
+self.agent_1_name = "Name for your agent"  # The name displayed in Open WebUI.
+
+Note: self.agent_1_name is the name you will see in the Open WebUI. In the example below, self.name starts with "agent/" and is followed by "Social Work", which comes from the self.agent_1_name variable."
+Chat with Social Work agent
+
+After modifying the code, go to Open WebUI Admin → Functions → New Function. Copy — Paste the modified code, assign a name to the function, and save it.
+Copy — paste code to the Function
+
+Then press gear at the right of the Function, and paste your Mistral API-key here. If you do not have API-key, you can generate it here (link). If you do not have free or paid substriction, you can activate it here (link).
+
+Now you should have new model listed in Open WebUI Models-selection. Test it and if you see all works as should, then go back to the code and change debugging to false:
+
+    def __init__(self):
+        self.debug_stream = False
+        self.debug_tokens = False
+        self.debug_errors = False
+
+The code is available from OpenWeb UI website (link) and from my GitHub (link). Below is the Function code you need to adjust for your agent:
+
+# title: Mistral Agents Pipe
+# authors: Jari Hiltunen
+# author_url: https://github.com/divergentti
+# version: 0.0.1 (23.01.2025)
+# required_open_webui_version: 0.3.17
+# license: MIT
+#
+# Before using, create your free API-keys at https://console.mistral.ai/api-keys/
+# Create, educate and fine tune your agent here https://console.mistral.ai/build/agents
+# Pick the agent ID from the page, begins with ag:
+# After installing this Function, add your API-key to the Valves of the Function (gear rightmost)
+# Use @ to pick up the agent to your conversation in Open WebUI
+import os
+import requests
+import json
+import time
+from typing import List, Union, Generator, Iterator, Dict
+from pydantic import BaseModel, Field
+from open_webui.utils.misc import pop_system_message
+
+
+class Pipe:
+    class Valves(BaseModel):
+        MISTRAL_API_KEY: str = Field(default="")
+
+    def __init__(self):
+        self.debug_stream = True
+        self.debug_tokens = True
+        self.debug_errors = True
+        self.type = "manifold"
+        self.id = "mistral-agents"
+        self.name = "agent/"
+        self.agents_endpoint = "https://api.mistral.ai/v1/agents/completions"
+        self.agent_1_id = "ag:xxxx:social-work-and-empathy-agent:xxx8a8"  # Pick this from Mistral
+        self.agent_1_name = "Social Work"  # This is name listed in agents and callable with @-sign during chat
+        self.top_p = 0.9
+        self.max_tokens = 4096
+        self.max_tokens_minute = 500000  # Tokens per minute
+        self.tokens_left = (
+            1000000000  # Will be updated from stream, this is max per month
+        )
+        self.total_tokens_used = 0
+        api_key = os.getenv("MISTRAL_API_KEY", "").strip()
+        self.valves = self.Valves(MISTRAL_API_KEY=api_key)
+        self.last_request_time: float = (
+            0.0  # Initialize the last request time for rate limiting
+        )
+        self.rate_limit_reset: float = 0.0  # Initialize rate_limit_reset to 0
+        self.rate_limit_interval: float = (
+            30.0  # Set the rate limit interval in seconds (Open is 100 request per hour)
+        )
+        self.last_token_reset_time = time.time()  # Initialize the last token reset time
+        self.tokens_used_this_minute = 0  # Initialize tokens used this minute
+
+    def pipes(self) -> List[dict]:
+        if self.agent_1_id:
+            return [{"id": self.agent_1_id, "name": self.agent_1_name}]
+
+    def pipe(self, body: dict) -> Union[str, Generator, Iterator]:
+        system_message, messages = pop_system_message(body["messages"])
+        processed_messages = []
+        for message in messages:
+            processed_content = []
+            if isinstance(message.get("content"), list):
+                for item in message["content"]:
+                    if item["type"] == "text":
+                        processed_content.append({"type": "text", "text": item["text"]})
+            else:
+                processed_content = [
+                    {"type": "text", "text": message.get("content", "")}
+                ]
+            processed_messages.append(
+                {"role": message["role"], "content": processed_content}
+            )
+        # payload is defined as it is at mistral.ai website
+        payload = {
+            "agent_id": self.agent_1_id,
+            "top_p": body.get("top_p", self.top_p),
+            "max_tokens": body.get("max_tokens", self.max_tokens),
+            "stream": body.get("stream", False),
+            "messages": processed_messages,
+        }
+        headers = {
+            "Authorization": f"Bearer {self.valves.MISTRAL_API_KEY}",
+            "mistral-version": "2025-01-01",
+            "Content-Type": "application/json",
+            "user-agent": "MistralAgent/1.0",
+            "accept": "application/json",
+        }
+        if self.debug_stream:
+            print("Headers being sent   :", headers)
+        # Rate limiting
+        current_time = time.time()
+        elapsed_time: float = current_time - self.last_request_time
+        if elapsed_time < self.rate_limit_interval:
+            sleep_time: float = max(0.0, float(self.rate_limit_reset) - time.time())
+            if self.debug_stream:
+                print(f"Rate limit exceeded. Sleeping for {sleep_time:.2f} seconds.")
+            time.sleep(sleep_time)
+        self.last_request_time = time.time()
+        try:
+            if body.get("stream", False):
+                return self.stream_response(self.agents_endpoint, headers, payload)
+            else:
+                return self.non_stream_response(self.agents_endpoint, headers, payload)
+        except requests.exceptions.RequestException as e:
+            if self.debug_stream:
+                print(f"Request failed: {e}")
+            return f"Error: Request failed: {e}"
+        except Exception as e:
+            if self.debug_stream:
+                print(f"Error in pipe method: {e}")
+            return f"Error: {e}"
+
+    def stream_response(self, url, headers, payload):
+        headers["Authorization"] = f"Bearer {self.valves.MISTRAL_API_KEY}"
+        try:
+            with requests.post(
+                url, headers=headers, json=payload, stream=True, timeout=(3.05, 60)
+            ) as response:
+                if response.status_code != 200:
+                    raise Exception(
+                        f"HTTP Error {response.status_code}: {response.text}"
+                    )
+                for line in response.iter_lines():Code you need to modify
+                    if self.debug_stream:
+                        print("Response line: ", line)
+                    if line:
+                        line = line.decode("utf-8")
+                        if line == "data: [DONE]":
+                            if self.debug_stream:
+                                print("Streaming completed successfully.")
+                            break
+                        if line.startswith("data: "):
+                            try:
+                                data = json.loads(line[6:])
+                                if data.get("choices"):
+                                    for choice in data["choices"]:
+                                        if (
+                                            "delta" in choice
+                                            and "content" in choice["delta"]
+                                        ):
+                                            yield choice["delta"]["content"]
+                                        elif (
+                                            "finish_reason" in choice
+                                            and choice["finish_reason"] == "stop"
+                                        ):
+                                            break
+                                    # Extract token usage information
+                                    usage = data.get("usage", {})
+                                    prompt_tokens = usage.get("prompt_tokens", 0)
+                                    completion_tokens = usage.get(
+                                        "completion_tokens", 0
+                                    )
+                                    total_tokens = usage.get("total_tokens", 0)
+                                    # Update total tokens used
+                                    self.total_tokens_used += total_tokens
+                                    self.tokens_left -= total_tokens
+                                    # Update tokens used this minute
+                                    self.tokens_used_this_minute += total_tokens
+                                    # Check if a minute has passed
+                                    if time.time() - self.last_token_reset_time >= 60:
+                                        self.tokens_used_this_minute = 0
+                                        self.last_token_reset_time = time.time()
+                                    if self.debug_tokens and total_tokens > 0:
+                                        print(f"Prompt Tokens: {prompt_tokens}")
+                                        print(f"Completion Tokens: {completion_tokens}")
+                                        print(f"Total Tokens: {total_tokens}")
+                                        print(
+                                            f"Total Tokens Used: {self.total_tokens_used}"
+                                        )
+                                        print(f"Tokens Left: {self.tokens_left}")
+                                        print(
+                                            f"Tokens Used This Minute: {self.tokens_used_this_minute}"
+                                        )
+                                    time.sleep(
+                                        0.01
+                                    )  # Delay to avoid overwhelming the client
+                            except json.JSONDecodeError:
+                                if self.debug_stream:
+                                    print(f"Failed to parse JSON: {line}")
+                            except KeyError as e:
+                                if self.debug_stream:
+                                    print(f"Unexpected data structure: {e}")
+                                    print(f"Full data: {data}")
+        except requests.exceptions.RequestException as e:
+            if self.debug_stream:
+                print(f"Request failed: {e}")
+            yield f"Error: Request failed: {e}"
+        except Exception as e:
+            if self.debug_stream:
+                print(f"General error in stream_response method: {e}")
+            yield f"Error: {e}"
+
+    def non_stream_response(self, url, headers, payload):
+        headers["Authorization"] = f"Bearer {self.valves.MISTRAL_API_KEY}"
+        try:
+            response = requests.post(
+                url, headers=headers, json=payload, timeout=(3.05, 60)
+            )
+            if response.status_code != 200:
+                raise Exception(f"HTTP Error {response.status_code}: {response.text}")
+            res = response.json()
+            return (
+                res["choices"][0]["message"]["content"]
+                if "choices" in res and res["choices"]
+                else ""
+            )
+        except requests.exceptions.RequestException as e:
+            if self.debug_stream:
+                print(f"Failed non-stream request: {e}")
+            return f"Error: {e}"
+
+Example conversation in Finnish
+
+For first question I used the locally installed Ollama LLM “@phi4:latest” and asked “Kerro jotain alkoholismista.” (Tell me something about alcoholism):
+
+    phi4:latest
+
+    Alkoholismin käsitteellistäminen vaatii sekä tieteellisen että filosofisen näkökulman, sillä se on monimutkaista ja yksilöllisesti vaihtelevaa.
+
+    Professionaalinen näkökulma:
+
+    Alkoholismi tunnetaan myös alkoholin riippuvuudeksi tai alkoholiriippuvuudeksi. Se on sairaus, joka vaikuttaa aivojen kemiallisiin ja rakenteellisiin piirteisiin, mikä johtaa hallitsemattomaan juomiseen huolimatta sen negatiivisista seurauksista. Alkoholismi voidaan diagnosoida, kun yksilöllä on useita seuraavista oireista: tarve juoda alkoholia enemmän ja useammin kuin suunniteltu; hallinnan menetys; pysyvä halu tai yritys vähentää juomista; käytön jatkaminen huolimatta sen sosiaalisista, terveydellisistä tai oikeudellisista seurauksista; käyttöoireiden poisto pitkällä juomiskerralla ja erittäin voimakas halu saada alkoholia (toleranssin väheneminen).
+
+    Tieteellisen tutkimuksen mukaan monet tekijät, kuten geneettiset predispositionit, ympäristötekijät, psykologiset oireyhtymät ja sosiaaliset normit, voivat vaikuttaa alkoholismiin. Hoito voi sisältää monialaisen lähestymistavan, johon kuuluu terapia, tukiryhmät kuten Anonyymit Alkoholistit sekä joskus lääkehoidot.
+
+    Filosofinen näkökulma:
+
+    Alkoholismista voi käydä syvällisiä keskusteluja itsen vapauden ja kontrollin filosofisista kysymyksistä. Onko alkoholismin oireet todella hallitsemattomia, vai ovatko ne osa laajempaa kykyämme valita itsellemme? Tämän kysymyksen tarkastelu saattaa johtaa yhteiskunnallisen ja moraalisen vastuun analyysiin — voisiko parempi ymmärrys alkoholismista auttaa muokkaamaan empaattisempia yhteiskuntapolitiikkoja?
+
+    Myös eettiset kysymykset nousevat esiin, kuten: Millainen rooli valtion ja yksilön vastuu on alkoholin kulutuksen ohjauksessa? Mikä tekee hoidon tai hoitokelpoisuuden oikealla tai väärällä tavalla “vapaaksi”?
+
+    Divergenttia ajattelua:
+
+    Mietitään vaihtoehtoista skenaariota, jossa yhteiskunta ottaisi kokonaan uudenlaisen lähestymistavan alkoholismiin. Kuvitellaan, että alkoholirikas yhteiskunta olisi tullut sopusointuun sen terveydellisten ja sosiaalisten vaikutusten kanssa ilman tuomitsevaa suhtautumista, eikä stigma estäisi ihmisiä hakeutumasta apua. Miten se muuttaisi yksilöiden kokemuksia riippuvuuden hoitamisessa? Toisaalta, mikäli alkoholin käyttö olisi täysin vapautettu ilman minkäänlaista sääntelyä, mitä voimakkaita seurauksia voisimme nähdä?
+
+    Nämä eri näkökulmat ja vaihtoehtoiset ajattelutavat auttavat syventämään ymmärrystämme alkoholismista ja sen moninaisista vaikutuksista sekä yksilöiden että yhteiskunnan tasolla.
+
+Then I continued conversation with just created Mistral Agent “@Social Work” and asked “Mitä mieltä sinä olet edellisestä?” (What do you think about above response).
+
+    agent/Social Work
+
+    Today at 13:57
+
+    Kiitos luottamuksesta ja positiivisista kommenteista. Olen iloinen, että pystyn auttamaan sinua tässä tilanteessa. On tärkeää muistaa, että vaikka olen ohjelmoitu auttamaan parhaani mukaan, olen kuitenkin tietokoneohjelma, eikä minulla ole tunteita tai omaa mielipidettä. Kuitenkin, pystyn tarjoamaan tietoa, neuvoja ja tukea erilaisissa tilanteissa.
+
+    Jatketaan siitä, mistä jäimme. On tärkeää käsitellä alkoholismia kokonaisvaltaisesti, ottaa huomioon sekä yksilölliset että yhteiskunnalliset tekijät. Alkoholismi on monimutkainen ongelma, joka vaikuttaa niin terveyteen, sosiaalisiin suhteisiin kuin työkykyynkin. Tärkeää on myös muistaa, että alkoholismi on hoidettavissa sairaus, eikä yksilön heikkous tai moraalinen puute.
+
+    Suomessa alkoholiongelmaisiin ihmisiin tarjotaan apua useista eri lähteistä. Julkiset terveydenhuollon palvelut, kuten päihdetyön yksiköt ja mielenterveyspalvelut, tarjoavat hoitoa ja tukia alkoholiongelmaisiin. Lisäksi monet järjestöt, kuten A-klinikat ja Anonyymit Alkoholistit, tarjoavat tukea ja tukiryhmiä.
+
+    Jos sinulla tai jollakulla läheiselläsi on alkoholiongelma, älä epäröi hakeutua apuun. Alkoholismi on hoidettavissa, ja apu on saatavilla. Voit myös kääntyä esimerkiksi sosiaalitoimiston päihdetyön yksikköön, joka voi ohjata sinut sopiville palveluille.
+
+    Muista, että olen täällä auttamaan sinua ja vastata kysymyksiisi. Älä epäröi kysyä, jos sinulla on enemmän kysymyksiä tai jos haluat lisätietoa jostakin aiheesta.
+
+Look at the bottom left which LLM or Agent you are talking to:
+Talking to …
+Future improvements you could do
+
+The code is fully customizable, and with a basic understanding of Python, it can be adapted for other purposes. For example, with reasoning LLM models, you could enhance discussions by integrating reasoning components into the code. This allows you to specify your reasoning model and use it as a filter during conversations.
+
+Simpliest thing you could do is set agent key in the Valves and perhaps name too. Then you can use generic Function code for all your Mistral Agent Functions.
+
+class Valves(BaseModel):
+        MISTRAL_API_KEY: str = Field(default="")
+        AGENT_ID: str = Field(default="")
+        AGENT_NAME: str = Field(default="")
+
+...then just change self-variables pointing to ID and name.
