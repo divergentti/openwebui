@@ -1,0 +1,41 @@
+You might have noticed that Open WebUI allows you to create your own models or download models created by other users.
+
+In this example I installed Nikolai Tesla Model and asked a simple question using LLama3.2b as a base model. My questions was: “Tell me how radio signals propagate via aurora borealis.”
+
+    Nikolas Tesla 3:28 pm
+
+    My dear fellow, I’m delighted to share with you my thoughts on this fascinating topic. As an inventor who has spent considerable time studying the properties of electromagnetic radiation, I must correct a common misconception: radio signals do not propagate directly via aurora borealis.
+
+    Aurora borealis, or the Northern Lights, is a breathtaking natural phenomenon caused by charged particles from the solar wind interacting with the Earth’s magnetic field and atmosphere. While it’s true that the same fundamental principles of electromagnetic induction apply to both radio signals and auroral displays, there is no direct connection between the two.
+
+    However, I do see an intriguing relationship between radio propagation and the ionosphere, which can be influenced by aurora activity. You see, during intense solar flares or geomagnetic storms, the ionosphere can become disturbed, leading to changes in its density and composition. This, in turn, can affect the behavior of radio signals.
+
+    When a radio signal is transmitted into the ionosphere, it interacts with the charged particles and atmospheric gases present there. The ionosphere acts as a reflector or refractor for radio waves, depending on the frequency and the specific conditions of the atmosphere. In some cases, this interaction can lead to a phenomenon known as “ionospheric reflection,” where the signal bounces back from the ionosphere, allowing it to propagate over long distances.
+
+    Now, I must emphasize that aurora borealis itself is not directly responsible for radio signal propagation. However, the changes in the ionosphere caused by geomagnetic activity can have an indirect impact on radio wave behavior. This connection highlights the complex and dynamic nature of the Earth’s atmosphere and its relationship with the electromagnetic spectrum.
+
+    As an inventor who has explored the boundaries of wireless communication, I’m struck by the parallels between my work and this phenomenon. The study of radio propagation and ionospheric interactions is a testament to the intricate dance between our planet’s natural systems and the technological innovations we create.
+
+    In conclusion, while aurora borealis itself does not directly propagate radio signals, its influence on the ionosphere can lead to changes in radio wave behavior. This fascinating connection underscores the importance of continued research into the complex relationships between our atmosphere, electromagnetic radiation, and human innovation.
+
+    — — — Translated to: fi language — — —
+
+    Rakas ystäväni, olen iloinen voidessani jakaa kanssasi ajatuksiani tästä kiehtovasta aiheesta. Keksijänä, joka on viettänyt paljon aikaa elektromagneettisen säteilyn ominaisuuksien tutkimiseen, minun on korjattava yhteinen väärinkäsitys: radiosignaalit eivät leviä suoraan aurora borealisin kautta.
+
+    Aurora borealis, tai Northern Lights, on henkeäsalpaava luonnollinen ilmiö, joka johtuu aurinkotuulen varautuneista hiukkasista, jotka ovat vuorovaikutuksessa Maan magneettikentän ja ilmakehän kanssa. Vaikka on totta, että samat sähkömagneettisen induktion perusperiaatteet koskevat sekä radiosignaaleja että auroraalisia näyttöjä, näiden välillä ei ole suoraa yhteyttä.
+
+    Kuitenkin näen kiehtovan suhteen radion leviämisen ja ionosfäärin välillä, johon voi vaikuttaa aurora-toiminta. Intensiivisten aurinkopurkausten tai geomagneettisten myrskyjen aikana ionosfääri voi häiriintyä, mikä johtaa sen tiheyden ja koostumuksen muutoksiin. Tämä puolestaan voi vaikuttaa radiosignaalien toimintaan.
+
+    Kun radiosignaali lähetetään ionosfääriin, se on vuorovaikutuksessa varattujen hiukkasten ja ilmakehän kaasujen kanssa. Ionosfääri toimii heijastimena tai radioaaltojen refraktorina riippuen ilmakehän taajuudesta ja erityisistä olosuhteista. Joissakin tapauksissa tämä vuorovaikutus voi johtaa ilmiöön, joka tunnetaan nimellä ionosfäärinen heijastus, jossa signaali palaa ionosfääristä, jolloin se voi levitä pitkiä matkoja.
+
+    Nyt on korostettava, että aurora borealis ei ole suoraan vastuussa radiosignaalin leviämisestä. Geomagneettisen toiminnan aiheuttamat ionosfäärin muutokset voivat kuitenkin vaikuttaa epäsuorasti radioaaltojen käyttäytymiseen. Tämä yhteys korostaa maapallon ilmakehän monimutkaista ja dynaamista luonnetta ja sen suhdetta sähkömagneettiseen spektriin.
+
+    Keksijänä, joka on tutkinut langattoman viestinnän rajoja, olen törmännyt työni ja tämän ilmiön rinnakkaisuuksiin. Radion leviämisen ja ionosfäärisen vuorovaikutuksen tutkimus on osoitus planeettamme luonnollisten järjestelmien monimutkaisesta tanssista ja luomistamme teknologisista innovaatioista.
+
+    Vaikka aurora borealis itsessään ei suoraan levitä radiosignaaleja, sen vaikutus ionosfääriin voi johtaa radioaaltojen käyttäytymisen muutoksiin. Tämä kiehtova yhteys korostaa jatkuvan tutkimuksen tärkeyttä ilmakehän, sähkömagneettisen säteilyn ja innovatiivisen innovoinnin välillä.
+
+As OT ham radio (now OH4CMA), I would say answer in English was ok, Finnish translation (LibreTranslate) needs a few corrections.
+
+Based on this example, should you try to make something like Nikolas Tesla?
+
+How about making social instructor model, as I did for GPT? Article Sosiaalineuvoja — Monikielinen ja Monipuolinen Avustaja has a link to the GPT which is fed with a lot of Finnish legislation and practises for replacing social worker’s daily routines.
