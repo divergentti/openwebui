@@ -1,0 +1,130 @@
+Introduction
+
+Yesterday, I encountered issues with setting up OpenWebUI using Docker and NVIDIA CUDA. To address this, I’ve prepared a straightforward guide for installing OpenWebUI with NVIDIA CUDA support without Docker. This article provides a clear, step-by-step approach to configuring OpenWebUI to leverage GPU acceleration, avoiding the complications experienced with Docker.
+
+Read getting started instructions and read MANUAL INSTALLATION.
+Prerequisites
+
+    Ubuntu 24.04 LTS: Ensure that your system is running Ubuntu 24.04 LTS or as an example Linux Mint wilma.
+    NVIDIA GPU: A compatible NVIDIA GPU with CUDA support.
+    Python 3.11: Ensure Python 3.11 is installed on your system.
+    Virtual Environment: A Python virtual environment for managing dependencies.
+
+Step 1: Install NVIDIA Drivers and CUDA Toolkit
+
+To automatically install NVIDIA drivers and the CUDA Toolkit, follow these steps:
+
+Update Package List and Install Drivers: Open a terminal and run the following commands to update your package list, install the NVIDIA drivers, and reboot your system:
+
+sudo apt update
+sudo ubuntu-drivers autoinstall
+sudo reboot
+
+The ubuntu-drivers autoinstall command will automatically detect and install the appropriate NVIDIA drivers for your GPU.
+
+Install CUDA Toolkit: After rebooting, install the CUDA Toolkit:
+
+sudo apt install nvidia-cuda-toolkit
+
+Verify Installation: Check if CUDA and the NVIDIA drivers are installed correctly by running:
+
+nvcc --version
+
+Ensure that the nvidia-smi command shows your GPU information:
+
+nvidia-smi
+
+CUDA 12.4 and NVIDIA 550 drivers
+
+If needed, install NVIDIA Container Toolkit by following this document part “Installing with Apt” items 1, 2 and 3.
+Step 2: Set Up Python Virtual Environment
+
+Create a Virtual Environment: Navigate to your desired installation directory and create a virtual environment:
+
+
+# Make directory
+mkdir -p /opt/open-webui
+# Change ownership
+sudo chown -R username:yourgroup /opt/open-webui (your username)
+sudo chmod -R u+rwx /opt/open-webui
+cd /opt/open-webui
+sudo apt install build-essential libssl-dev libffi-dev python3-dev
+## this part if you do not have Python3.11 already 
+## (Ubuntu 24.04LTS comes with Python3.12 and is too new)
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt update
+sudo apt install python3.11 python3.11-venv python3.11-dev
+## if you prefer Python3.10: sudo apt install python3.10 python3.10-venv python3.10-dev)
+
+# Installing Python virtual environment
+python3.11 -m venv venv
+# python3.10 -m venv venv if you prefer Python3.10
+
+# Activate virtual environment, do this always before you add or change 
+source venv/bin/activate
+pip install - - upgrade pip
+pip install ffmpeg
+
+Instructions about Python virtual enviroment.
+
+Activate the Virtual Environment:
+
+Remember always activate your virtual environment before making changes setup-wise, no system-wise:
+
+source venv/bin/activate
+
+Install OpenWebUI and Dependencies: With the virtual environment activated, install OpenWebUI and other required packages:
+
+pip install open-webui
+
+(updating pip install open-webui --upgrade) rememer to keep venv active!
+
+Completed pip install — this take a while
+Step 3: Configure OpenWebUI for CUDA
+
+Create a script to set the environment variables and start OpenWebUI. Save the following as start_openwebui.sh:
+
+#!/bin/bash
+# Change to the OpenWebUI directory
+cd /opt/open-webui || exit
+# Activate the virtual environment
+source venv/bin/activate
+# Set environment variable for CUDA support
+export USE_CUDA_DOCKER=True
+# Start OpenWebUI
+open-webui serve
+
+Make the Script Executable:
+
+chmod +x /opt/open-webui/start_openwebui.sh
+
+Optional: Create a Desktop Shortcut: Create a desktop entry to easily run the script from your desktop. Save the following as start_openwebui.desktop on your desktop:
+
+[Desktop Entry]
+Name=Start Open WebUI
+Comment=Starts Open WebUI with GPU support
+Exec=/opt/open-webui/start_openwebui.sh
+Icon=/opt/open-webui/icon.png
+Terminal=true
+Type=Application
+
+Make the desktop entry executable:
+
+chmod +x ~/Desktop/start_openwebui.desktop
+
+With these steps, you should have a fully functional OpenWebUI setup with NVIDIA CUDA support, and an easy way to start it from your desktop.
+Open WebUI started and serving at port 8080 locally
+
+CUDA is enabled if you see INFO [open_webui.apps.audio.main] whisper_device_type: cuda
+
+Check environment variables for your script:
+
+    if you would like to restrict who can access Open WebUI, set CORS_ALLOW_ORIGIN = ‘https://your-allowed-origin.com'
+    export USER_AGENT=”your-user-agent-string” if you develop further
+
+Open WebUI frontend
+Using Ollama & OpenAI models together (with API keys)
+LLama3.2 is super fast!
+OpenWebUI and WebSearch is powerfull combination
+
+Good luck and have fun!
