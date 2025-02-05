@@ -1,0 +1,331 @@
+Ollama is an open-source platform designed to let users run large language models (LLMs) locally on their machines, without the need for cloud-based services. This gives users greater control over their data privacy, as no information is transmitted to third-party servers. Initially created to support models like LLaMA, Ollama has since expanded to include other models, such as Mistral and Phi-2. Users can interact with these models through a command-line interface or a WebUI for ease of use.
+
+One of Ollama’s main advantages is the ability to experiment with powerful language models in a local environment, particularly useful for those who prioritize privacy or want to avoid the costs associated with cloud-based APIs. It is also highly customizable, enabling users to adjust model parameters and even create new models tailored to specific needs. Additionally, Ollama supports multimodal inputs (text and images) and can be integrated into custom applications via its API.
+
+In short, Ollama is a versatile, privacy-focused tool for running and experimenting with LLMs locally, offering an accessible solution for developers and researchers alike (GitHub)​(MiraMuse AI)​(Isaac Chung | Isaac Chung).
+Installation and Setup
+
+In the following section, I’ll walk through a method that works for both Ubuntu 24.04 LTS and Linux Mint Wilma versions. I’ll also address a few common issues, particularly those related to NVIDIA CUDA, Docker (which I advise against using in this context), and memory limitations.
+
+If you plan to use CUDA with Open WebUI, follow these instructions.
+
+Installing Ollama
+
+For detailed installation instructions, you can follow this step-by-step guide, which covers Windows, macOS, and Linux setups.
+
+Testing with Windows:
+
+    Install Ollama by following the guide linked above.
+    Open the Command Prompt and run the command ollama run llama3.1. This will initiate the download of the LLaMA 3.1 model.
+    Once the download is complete, start testing by typing your prompt.
+
+You’ll notice that while LLaMA 3.1 is functional, it may not yet exhibit peak performance when responding intelligently. Further tweaking may be required for more complex interactions.
+
+For Ubuntu / Mint:
+
+If you’re using Ubuntu, Linux Mint, or a similar Linux distribution, navigate to the /opt directory and install Ollama using the following command: curl -fsSL https://ollama.com/install.sh | sh
+
+Finding the Installation Location:
+
+After installation, you might wonder where Ollama has been installed. To check the installation path, use the command: which ollama
+
+This will typically show /usr/local/bin/ollama as the location.
+
+Running Ollama:
+
+Once Ollama is set up and running as a service, you can start using it by running: ollama run llama3.1
+
+Gemma2 vs. LLaMA 3.1:
+
+If you’re running Ollama on a system with sufficient RAM, you may want to try out the Gemma2 model as well. In my tests, Gemma2 has shown better performance and understanding compared to LLaMA 3.1, handling even simple calculations more accurately.
+Testing Ollama + Gemma2 in PC with plenty RAM. As you see, even simple calculations are correct now :)
+Frontends
+
+The choice of frontend depends on your operating system and the level of installation complexity you’re comfortable with. Do you want to run WSL2 on Windows, or would you prefer a native Windows frontend?
+For Windows (without WSL2 or Docker):
+
+If you’re using Windows (or macOS) and want to avoid WSL2 and Docker, there are several native options to run Ollama models:
+
+LibreChat (Windows Support)
+LibreChat is a cross-platform frontend that works with Ollama, offering a simple and clean chat interface for interacting with large language models. It doesn’t require Docker or WSL2, making it an easy solution for native Windows users.
+
+You can download LibreChat from its GitHub repository. This frontend provides a lightweight and efficient alternative for Windows users who want to avoid complex setups.
+
+NextJS Web Interface
+Another option is the Next.js-based web UI, which allows you to run Ollama models through a web interface. This solution requires Node.js to be installed but avoids Docker entirely.
+
+Simply install Node.js, clone the repository from GitHub, and follow the setup instructions. It provides a more user-friendly web-based interface for running models natively on Windows.
+
+Custom Desktop Applications for Windows
+Although most custom desktop apps for Ollama (such as Hollama) are currently developed for macOS, the community is working on similar solutions for Windows. It’s worth keeping an eye on GitHub for emerging Windows-native applications.
+
+Conclusion:
+While Docker and WSL2 are common for running Ollama in Linux-heavy environments, native Windows options like LibreChat and NextJS Web Interface offer a simpler alternative. These frontends avoid the overhead of setting up Docker or WSL2, providing a more Windows-friendly experience.
+For Linux, Mac, or Windows with WSL2/Hyper-V:
+
+For users with Linux, macOS, or Windows capable of running WSL2 or Hyper-V, there are several frontend options that make interacting with Ollama easier:
+
+Open WebUI
+This is a web-based graphical interface for Ollama, offering a visual and interactive experience compared to the command-line interface. Users can chat with models, upload documents, and adjust settings, making it ideal for those who prefer a point-and-click interface over manual commands.
+
+Hollama (macOS)
+Hollama is a native macOS frontend that seamlessly integrates Ollama into the macOS environment. It offers an intuitive UI for running and interacting with models, providing an optimized experience for Mac users.
+
+Ollama-SwiftUI (macOS)
+Ollama-SwiftUI is a frontend framework built with SwiftUI, designed specifically for macOS applications. It enables developers to build custom macOS apps using Ollama’s models, providing flexibility for integrating LLMs into macOS workflows.
+
+These options allow users to tailor their experience based on their operating system and preferred method of interaction, whether through lightweight native applications or more visual web interfaces.
+Installing OpenWebUI Without GPU Support
+
+I initially attempted to install OpenWebUI with GPU support but encountered an issue that proved difficult to resolve. Below is an explanation of the problem, provided by ChatGPT:
+
+    CUDA and Docker Issue Explanation:
+
+    The problem you experienced with CUDA and Docker likely stems from several factors related to version mismatches between the CUDA version, the NVIDIA driver, and Docker’s runtime.
+
+    1. CUDA Version and Driver Mismatch
+
+    Docker containers rely on the host system’s NVIDIA drivers for CUDA support. If the CUDA version inside the Docker container differs from the NVIDIA driver version on the host system, you might face compatibility errors.
+    For instance, if you are running CUDA 12.4 on your system, but the Docker image requires CUDA 12.6, you’ll see errors like:
+    cuda>=12.6, please update your driver to a newer version.
+
+    2. NVIDIA Runtime Configuration
+
+    Docker requires the NVIDIA runtime to access the GPU. Even if nvidia-docker is installed, misconfigurations in the runtime setup can prevent Docker from properly forwarding GPU requests, leading to failures.
+
+    3. CUDA Toolkit Compatibility
+
+    Docker images are often tied to specific versions of the CUDA toolkit. If your host system has a different version of the CUDA toolkit than expected by the Docker image, runtime errors may occur. This is the root cause when trying to pull images for CUDA 12.6 but running them with CUDA 12.4.
+
+    4. Manifest Not Found
+
+    Errors like manifest unknown can occur if you're trying to pull a Docker image that doesn't exist for the specific CUDA version, operating system, or base distribution you have.
+
+    Solutions Attempted:
+
+    Pulling Compatible Docker Images: I tried using Docker images that matched the installed CUDA version (e.g., 12.4), but this didn’t resolve the driver compatibility issues.
+
+    Switching to Non-GPU Support: Bypassing the GPU dependencies by switching to non-GPU support allowed Docker to run smoothly, avoiding the CUDA-driver mismatch problem.
+
+    Conclusion:
+
+    The primary issue stemmed from a mismatch between the host NVIDIA driver (CUDA 12.4) and the CUDA version required by the Docker container (CUDA 12.6). Installing a version compatible with your system’s CUDA version would resolve this.
+
+Installing OpenWebUI Without GPU Support:
+
+Given the issues with GPU support, let’s proceed with installing OpenWebUI without GPU dependencies. Testing shows it’s preferable to use port 8080 to avoid problems where Ollama modules don’t appear.
+
+Documentation suggests the following steps for installation:
+
+OpenWebUI Server Connection Error
+If you experience connection problems, it’s often because the WebUI Docker container can’t reach the Ollama server at 127.0.0.1:11434 (host.docker.internal:11434) inside the container. To fix this, use the --network=host flag in your Docker command. Additionally, ensure the port changes from 3000 to 8080 to access the web UI at http://localhost:8080.
+Installation Steps:
+
+    Ensure Docker is installed and open a terminal (command line interface).
+    Run the following command: docker run -d — network=host -v open-webui:/app/backend/data -e OLLAMA_BASE_URL=http://127.0.0.1:11434 — name open-webui — restart always ghcr.io/open-webui/open-webui:main
+    Open your web browser and go to http://localhost:8080. You should see the login screen.
+    Create your login credentials and be sure to remember your password. Note that users are stored locally in a SQL database, and it’s not easy to recover them if lost.
+    After logging in, you should see models downloaded to Ollama.
+
+Selecting module
+Asking Gemma2 capabilities
+
+Let’s see how well Gemma2 analyze my micropython code:
+Gemma2 seems to understand Micropython
+
+Seems to be close to truth. Device is ESP32.
+Bad Tests: Ollama and OpenWebUI on a Laptop with 8GB RAM and NVIDIA CUDA GPU — Not Going to Work!
+
+Using a frontend like OpenWebUI for Ollama can enhance the experience, but if you’re working with a laptop that only has 8GB of RAM, this setup is likely to fail. OpenWebUI is available on GitHub, but before diving in, keep in mind that this combination will probably run into performance issues unless you’re using GPU support.
+Key Problems Encountered:
+
+    Low RAM (8GB):
+    Running Ollama with OpenWebUI requires significantly more RAM. If you’re attempting to run this on a system with only 8GB, performance will degrade rapidly, and Docker processes may fail to allocate sufficient resources.
+    GPU Support:
+    Even with a CUDA-compatible GPU, the first installation attempt often fails due to OpenWebUI trying to access Ollama through Docker’s proxy (refer to the connectivity issue mentioned earlier). Although GPU support may help, it doesn’t fully mitigate the performance bottlenecks caused by limited RAM.
+
+Steps to Install Docker on Linux Mint 24.04 (Wilma):
+
+If you’re determined to try despite the limitations, here’s how to get started with Docker on Linux Mint 24.04 (Wilma). This setup mirrors Ubuntu 24.04, so we’ll begin by installing Docker:
+
+    Check Your Distribution: Run the following command to confirm your distribution information: cat /etc/upstream-release/lsb-release
+
+Expected output:
+
+DISTRIB_ID=Ubuntu
+DISTRIB_RELEASE=24.04
+DISTRIB_CODENAME=noble
+DISTRIB_DESCRIPTION=”Ubuntu Noble Numbat”
+
+2. Install Docker: First, update your package list and install required dependencies:
+
+sudo apt update
+sudo apt install apt-transport-https ca-certificates curl software-properties-common
+
+3. Add Docker’s Repository: Add Docker’s official GPG key and set up the repository:
+
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu jammy stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+4. Install Docker: Install Docker with the following command:
+
+sudo apt install docker.io
+
+5. Test the Installation: Verify Docker is installed and working by running the test image:
+
+sudo docker run hello-world
+
+Conclusion:
+
+Be cautious if you’re working with limited resources (like 8GB RAM), as performance is likely to suffer. However, this guide should help you set up Docker and get started with OpenWebUI. If you encounter issues, like connectivity problems or failures with GPU support, it may be worth considering upgrading your system or using a more powerful machine for these tests.
+Testing OpenWebUI on a PC with Ample RAM and Nvidia GPU (including TPU Cores)
+
+After struggling with the previous setup on a laptop, I moved on to test OpenWebUI on a more powerful machine with sufficient RAM and an Nvidia GPU with TPU cores. This PC is already running other AI-related tools like Stable Diffusion, TensorFlow, and OpenCV. Despite the improved hardware, the installation was extremely frustrating and ultimately unsuccessful.
+Key Issues:
+
+    Ubuntu 24.04 LTS Compatibility: Ubuntu 24.04 LTS is too new for some CUDA implementations, which may not yet be fully supported. Additionally, Python 3.12, which comes with this release, isn’t widely supported by many machine learning frameworks, adding further complications.
+    Python Version Management: To avoid interfering with the system-wide Python installation, it’s critical to install Python applications within virtual environments (venv). This isolates your environment, ensuring that dependencies for one project don’t conflict with others or break system-wide Python functionality.
+    Always set up a virtual environment for Python projects, especially when dealing with cutting-edge versions like Python 3.12. Here’s how to create a venv: python3 -m venv myenv & source myenv/bin/activate
+
+This allows you to install packages and dependencies locally without affecting the rest of your system.
+
+4. Nvidia Driver and CUDA Compatibility: Linux Mint 24.04 LTS (Wilma) ships with Nvidia 535 drivers, which should be compatible with most GPUs. However, it’s essential to ensure that both the Nvidia drivers and CUDA toolkit are correctly installed and compatible with your system.
+
+To check if your Nvidia drivers and CUDA are working properly, you can run the following command: nvidia-smi
+
+This command will display the driver version, GPU utilization, and whether CUDA is available.
+
+It seems that CUDA 12.2 is too old for the setup we’re aiming for. To resolve this, you’ll need to update your system and install the latest drivers.
+Steps to Update and Install New NVIDIA Drivers:
+
+    Update Your System: Start by updating your package list and upgrading your system packages: sudo apt update & sudo apt upgrade
+    Automatically Install the Latest NVIDIA Drivers: Use the following command to install the latest recommended NVIDIA drivers automatically: sudo ubuntu-drivers autoinstall
+    Reboot: After installing the drivers, reboot your system to ensure the changes take effect: sudo reboot
+    Check CUDA Version: After rebooting, use nvidia-smi to verify that CUDA is correctly installed and should now show CUDA version 12.4: nvidia-smi
+
+By following these steps, you should now have the latest drivers and a compatible version of CUDA installed, helping to resolve previous compatibility issues. However, I soon found myself caught in what I can only describe as a frustrating NVIDIA-Docker loop. While CUDA 12.2 isn’t supported by Docker, neither is CUDA 12.4. For CUDA 12.6, new NVIDIA drivers need to be manually compiled, adding another layer of complexity.
+AI Insight:
+
+As an AI-generated response pointed out:
+
+    The situation with CUDA 12.4 can indeed feel like a ‘limbo’ where NVIDIA’s packaging across systems and Docker hasn’t fully aligned. This isn’t necessarily a failure, but more of a gap in release strategy or support within Docker.”
+
+    This gap creates a frustrating environment where neither CUDA 12.2 nor CUDA 12.4 is fully compatible, and upgrading to CUDA 12.6 requires additional manual compilation. It’s a clear sign of the disconnect between NVIDIA’s driver releases and Docker’s evolving support for CUDA versions.
+
+    It seems that Docker does not support CUDA 12.2 and CUDA 12.4. It might support CUDA 12.6, but then NVIDIA do not have latest drivers for 24.04LTS to be used with CUDA 12.6.
+
+I am not alone. NVIDIA CUDA and Docker is not good combination!
+So, DO NOT try to install Open-WebUI with GPU support with Docker! Docker just su…s!
+
+I leave these tests here for reference.
+
+Installing (trying to install) with GPU support and Ollama support:
+
+docker run -d -p 3000:8080 - gpus=all -v ollama:/root/.ollama -v open-webui:/app/backend/data - name open-webui - restart always ghcr.io/open-webui/open-webui:ollama
+
+Error during install
+
+This error means that NVIDIA Container Toolkit is missing.
+Installing the NVIDIA Container Toolkit - NVIDIA Container Toolkit 1.16.0 documentation
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o…docs.nvidia.com
+
+So, let’s install the Toolkit (easiest if you copy commands from NVIDIA page above):
+
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg - dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+ && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+ sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+ sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+- sudo apt-get update
+- sudo apt-get install -y nvidia-container-toolkit
+-sudo nvidia-ctk runtime configure - runtime=docker
+docker pull nvidia/cuda:12.6.1-cudnn-devel-ubuntu24.04
+docker run - gpus all nvidia/cuda:12.6.1-cudnn-devel-ubuntu24.04 nvidia-smi
+
+Cleaning bad install
+
+If you end up with bad install, or loose your password for administrative access to OpenWebUI, easiest way is to clean the installation.
+
+    First, stop the container if it is running:
+
+docker stop open-webui
+
+    Then remove the container:
+
+docker rm open-webui
+
+    After removing the container, you can delete the Docker images associated with OpenWebUI:
+
+docker rmi ghcr.io/open-webui/open-webui:latest # or 
+docker rmi ghcr.io/open-webui/open-webui:cuda #If you had the CUDA version installed
+
+    To verify the removal of the images:
+
+docker images
+
+    docker images will list all the available Docker images. Ensure there are no open-webui images remaining.
+    If any volumes were created for persistent storage (e.g., webui.db or other configuration data), you need to remove them: 1) List all Docker volumes: docker volume ls and 2) remove any volumes associated with OpenWebUI: docker volume rm <volume_name> from above listing.
+    If you’re unsure which volume is associated with OpenWebUI, you can inspect the container setup and check for associated volumes:
+
+docker inspect open-webui
+
+    If you used mounted directories (e.g., /opt/open-webui-data or similar paths) for persistent storage, you can delete those directories manually:
+
+sudo rm -rf /opt/open-webui-data
+
+    To ensure no other remnants are left (including networks, containers, images, and volumes not in use), you can run a Docker system prune:
+
+docker system prune -a
+
+Usefull commands:
+
+    Stop service:
+
+docker stop open-webui
+
+    Start service:
+
+docker start open-webui
+
+Cleaning Docker totally
+
+If you would like to remove Docker and Ollama Docker installs completelly, you can do it with following commands:
+
+    First, stop any running Docker containers:
+
+docker stop $(docker ps -q)
+
+    Then, remove all containers:
+
+docker rm $(docker ps -a -q)
+
+    Remove all Docker images from your system:
+
+docker rmi $(docker images -q)
+
+    If you have any Docker volumes, you can remove them to free up disk space:
+
+docker volume rm $(docker volume ls -q)
+
+    Remove any Docker networks that were created:
+
+docker network rm $(docker network ls -q)
+
+    Uninstall Docker and related packages:
+
+sudo apt-get purge docker-ce docker-ce-cli containerd.io
+
+    Remove Docker’s dependencies and related files:
+
+sudo apt-get autoremove
+sudo rm -rf /var/lib/docker
+sudo rm -rf /etc/docker
+
+    Clean up additional Docker configurations:
+
+sudo rm -rf /var/lib/containerd
+sudo rm /etc/systemd/system/docker.service
+sudo rm /etc/systemd/system/docker.socket
+sudo systemctl daemon-reload
+
+    Check if Docker is still installed by running: Check if Docker is still installed by running:
+
+docker - version
