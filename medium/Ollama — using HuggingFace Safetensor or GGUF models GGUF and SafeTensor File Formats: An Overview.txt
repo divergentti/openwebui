@@ -1,0 +1,153 @@
+As the AI and machine learning fields evolve, so does the need for efficient and secure data formats for storing, sharing, and deploying models. Two formats, GGUF (Generic GPU Format) and SafeTensor, have become popular due to their efficiency and safety features, each serving slightly different purposes within the ML ecosystem. This article explores their specifications, use cases, and benefits and then explains how to convert them for the Ollama.
+1. GGUF: Generic GPU Format
+
+GGUF (Generic GPU Format) is a data format designed specifically for storing machine learning models that are GPU-optimized, especially for large-scale models used in deep learning and complex data processing. It provides an efficient, structured way to represent models across various GPU architectures, making them easier to deploy across different platforms.
+
+Key Characteristics of GGUF
+- GPU Optimization: GGUF is tailored for models that will be deployed on GPUs. It optimizes data arrangement for efficient use of GPU resources, resulting in faster load times and reduced computational overhead during training and inference.
+- Cross-Platform Compatibility: GGUF is compatible across various GPU vendors, including NVIDIA, AMD, and Intel, ensuring that model deployment is flexible across different hardware architectures.
+- Structured Model Storage: It stores data in a structured manner, with metadata that enhances the readability of stored models, allowing developers and platforms to recognize dependencies and configurations with ease.
+
+GGUF Use Cases
+GGUF is best suited for high-performance model storage and deployment scenarios:
+- Large-Scale Deep Learning Models: For architectures like Transformer models or CNNs used in image recognition and natural language processing, where GPU acceleration is necessary.
+- Cross-Platform Model Distribution: GGUF is ideal for projects requiring GPU compatibility across multiple platforms, as it allows seamless migration between systems with minimal modifications.
+
+Advantages of GGUF
+- Faster GPU-Based Inference: By optimizing data for GPU use, GGUF can significantly reduce inference times.
+- Ease of Integration: With cross-platform support, models stored in GGUF are easier to integrate into diverse production environments.
+2. SafeTensor: A Safer Model Storage Format
+
+SafeTensor was developed as a response to security concerns in machine learning model deployment. Unlike traditional data formats that may be vulnerable to malicious payload injections, SafeTensor emphasizes safety and security, especially when handling untrusted or user-provided models. It is primarily designed to securely store and share tensors.
+
+Key Characteristics of SafeTensor
+- Security First: SafeTensor employs a lightweight, secure container format to prevent arbitrary code execution, which can sometimes be a risk with formats that support serialized objects like Python’s Pickle.
+- Self-Describing Structure: The format includes metadata describing the tensor shapes and data types, reducing the chance of loading errors and enhancing compatibility with various ML frameworks.
+- Efficient Tensor Storage: Like GGUF, SafeTensor is optimized for efficient storage, focusing on tensor data rather than complex model metadata.
+
+SafeTensor Use Cases
+SafeTensor is used in scenarios where security is paramount:
+- Model Sharing in Collaborative Environments: Platforms like Hugging Face and similar repositories utilize SafeTensor for sharing models without risk of code injection.
+- User-Generated Model Storage: SafeTensor is a go-to format for applications where users can upload their models or data, as it mitigates risks associated with untrusted sources.
+
+Advantages of SafeTensor
+- Enhanced Security: SafeTensor mitigates the risk of code execution on model loading, making it a secure choice for public repositories and open-source model sharing.
+- Compatibility with Major Frameworks: SafeTensor is supported by popular ML frameworks, including PyTorch and TensorFlow, facilitating its adoption in secure model sharing.
+GGUF vs. SafeTensor: A Comparison
+
+GGUF and SafeTensor serve as two complementary solutions in the machine learning ecosystem. While GGUF targets performance and scalability on GPUs, SafeTensor offers a secure alternative for sharing and storing tensor data, minimizing risks associated with untrusted sources. By selecting the right format for a specific use case, developers can ensure efficient, secure, and scalable model deployment.
+How to use Safetensors or GGUF as a own model in Ollama
+
+See Ollama’s instructions about creating and importing.
+
+Check, that you are downloading fine-tuned models, not adapters. If you download pretrained models, they are not tuned for instruction following or chat use.
+Converting Safetensors to GGUF
+
+As an example, Finnish fine tuned models from Finnish-NLP ‘s Collections can be downloaded from here. I use latest Llama-7b-instruct-v0.2 for Finnish in this example. Here is an excellent information how to convert Safetensors to GGUF, which Ollama can understand.
+
+Create a virtual environment for Python first, or use PyCharm which makes it for you. Remember to activate source venv/bin/activate-command if you do it manually. Instructions how to make a Python Virtual Environment.
+
+Procedure:
+
+Step 1: choose path where to you want store files.
+
+Step 2: create a python file download.py and then execute it with command python3 download.py:
+
+from huggingface_hub import snapshot_download
+model_id="Finnish-NLP/llama-7b-finnish-instruct-v0.2"
+snapshot_download(repo_id=model_id, local_dir="finnish",
+                  local_dir_use_symlinks=False, revision="main")
+
+Downloading model files to finnish-directory (local_dir in the download.py)
+
+Step 3: clone llama.cpp.git:
+
+git clone https://github.com/ggerganov/llama.cpp.git
+
+Cloning into 'llama.cpp'...
+remote: Enumerating objects: 36094, done.
+remote: Counting objects: 100% (12179/12179), done.
+remote: Compressing objects: 100% (566/566), done.
+remote: Total 36094 (delta 11916), reused 11644 (delta 11610), pack-reused 23915 (from 1)
+Receiving objects: 100% (36094/36094), 57.67 MiB | 1.35 MiB/s, done.
+Resolving deltas: 100% (26405/26405), done.
+
+Step 4 Activate your Python virtual environment (source venv/bin/activate) and install requirements. For this you need CUDA-capable GPU:
+
+pip install -r llama.cpp/requirements.txt
+
+Step 5: Convert downloaded files in (in this example finnish) directory with:
+
+cd finnish (this is directory from download.py)
+cd finnish
+python3 ../llama.cpp/convert_hf_to_gguf.py .
+
+INFO:gguf.gguf_writer:Writing the following files:
+INFO:gguf.gguf_writer:Model_Merged_V0.2_Option2-7.0B-F16.gguf: n_tensors = 291, total_size = 14.0G
+Writing: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 14.0G/14.0G [00:13<00:00, 1.00Gbyte/s]
+INFO:hf-to-gguf:Model successfully exported to Model_Merged_V0.2_Option2-7.0B-F16.gguf
+
+Now you have converted Safetensor-files to gguf-file, in this case name is Model_Merged_V0.2_Option2–7.0B-F16.gguf.
+
+Step 6: Change merged model name to something simplier, like:
+
+mv Model_Merged_V0.2_Option2–7.0B-F16.gguf llama7finnish.gguf
+
+Now your GGUF-file is ready to be added to the Ollama.
+Converting GGUF for Ollama
+
+Download gguf-file or create it from Safetensors. I downlaoded Safetensors from HuggingFace and converted them to gguf.
+
+    Go to directory (finnish in this example), where you downloaded or created the gguf-file.
+    Create model file (like mymodel.model) and change FROM pointing to downloaded or created filename:
+
+# Modelfile
+FROM "./llama7bfinnish.gguf"
+
+PARAMETER stop "<|im_start|>"
+PARAMETER stop "<|im_end|>"
+
+TEMPLATE """
+<|im_start|>system
+{{ .System }}<|im_end|>
+<|im_start|>user
+{{ .Prompt }}<|im_end|>
+<|im_start|>assistant
+"""
+
+3. Execute command ollama create with name you wish to use and after -f parameter name of previous model-file you created. Example:
+
+ollama create llama7bfinnish -f mymodel.model
+
+transferring model data 100% 
+using existing layer sha256:c8423089486f69ca9dbf6ab7672734223d63496c5bfa6a8d5314008607d3bc73 
+creating new layer sha256:8971eb8e89ce161a65232db6db5019953dbc313fc296d9e6e9d7823e395673b9 
+using existing layer sha256:f02dd72bb2423204352eabc5637b44d79d17f109fdb510a7c51455892aa2d216 
+creating new layer sha256:b271cb398de9861f55338dc49c49c4bba332787904c1b6baf53d1be3cd175aea 
+writing manifest 
+success
+
+4. Check that model is available for Ollama:
+
+ollama list
+NAME                              ID              SIZE      MODIFIED       
+llama7bfinnish:latest             30838cd705bb    14 GB     42 seconds ago 
+
+5. Refresh your Open WebUI and select your chat-capable model and test it out.
+
+This example case was so that model was not accurate, but at least you get an idea how to use HuggingFace models with Ollama!
+
+llama7bfinnish:latest
+content ### Task:
+Generate 1-3 broad tags categorizing the main themes of the chat history, along with 1-3 more specific subtopic tags.
+
+### Guidelines:
+- Start with high-level domains (e.g. Science, Technology, Philosophy, Arts, Politics, Business, Health, Sports, Entertainment, Education)
+- Consider including relevant subfields/subdomains if they are strongly represented throughout the conversation
+- If content is too short (less than 3 messages) or too diverse, use only ["General"]
+- Use the chat's primary language; default to English if multilingual
+- Prioritize accuracy over specificity
+
+Funny result :)
+
+Enjoy!
