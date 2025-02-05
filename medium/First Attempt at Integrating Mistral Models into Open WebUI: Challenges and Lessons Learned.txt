@@ -1,0 +1,36 @@
+It was interesting to test whether Open WebUI could use Mistral models just by adjusting the OpenAI URL and API keys. This test ended with the error ‘429 Too Many Requests.’ This could be because I am using the free API version.
+
+It looks like Mistral needs to be used through pipelines. I will create another document about the Python code for the pipeline once I have time to develop and thoroughly test it.
+
+I am publishing this article because you may be able to use it for other purposes. Perhaps the paid version of Mistral works too.
+Testing procedure
+
+    Create your free API-key:
+
+API key creationg
+
+2. Go to Open WebUI Settings page and add new connection (and delete Open AI if you do not use it):
+
+    URL is https://api.mistral.ai/v1
+    Key is your API-key
+    Model IDs are models available at Mistral:
+
+3. Save settings and refresh your web browser
+
+You should see models in the model listing.
+Models in the Open WebUI listing
+
+Test model operation by prompting something and by looking into your backend:
+Test prompt
+Backend
+
+From Mistral Dashboard you see API usage. However, this is not robust and ends up to “429 Too many requests”:
+429 Too Many Requests
+
+I will try to make pipeline for Mistral and check if free API version could be used via pipeline approach.
+
+Update 29.11.2024: Open WebUI Version v0.4.6 this setup seems to work so that if you select Mistral large, used model is Mistral 7B updated September 2023, Mistral Nemo links to Nemistral and updated December 2023, Mistral Codestral-Mamba also updated December 2023.
+
+Update 17.01.2025: I tried to fix api-access with Function, but there was already a function ready to be used. Install it from this link.
+
+Update 18.01.2025: This morning function above did not work, but my function draft seems to work. So, this needs more work.
